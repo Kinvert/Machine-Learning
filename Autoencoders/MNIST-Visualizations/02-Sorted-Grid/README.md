@@ -1,4 +1,4 @@
-# MNIST Autoencoder Visualizations 03
+# MNIST Autoencoder Sorted Grid
 
 This is a project I did in September 2022. Some of the results can be seen below.
 
