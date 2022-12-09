@@ -4,7 +4,7 @@ This is a project I did in September 2022. Some of the results can be seen below
 
 This image shows the final frame of the animation. Basically I just did a slow blend between this image and its transpose.
 
-<img src="https://github.com/Kinvert/resume/blob/main/ml/autoencoders/mnist_visualizations_3_sorted_grid/final_frame.png" width="280" height="280"/>
+<img src="https://github.com/Kinvert/Machine-Learning/blob/master/Autoencoders/MNIST-Visualizations/02-Sorted-Grid/final_frame.png" width="280" height="280"/>
 
 ## YouTube Videos
 
