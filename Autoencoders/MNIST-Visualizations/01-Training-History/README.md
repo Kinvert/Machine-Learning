@@ -4,11 +4,11 @@ This is a project I did in July 2022. Some of the results can be seen below.
 
 The first image here is a gif showing the training history of a single digit. In this case you can see that as training progressed, the digit became more clear. In this case it was a seven.
 
-<img src="https://github.com/Kinvert/resume/blob/main/ml/autoencoders/mnist_visualizations_1_train_history/single_digit.gif" width="280" height="280"/>
+<img src="https://github.com/Kinvert/Machine-Learning/blob/master/Autoencoders/MNIST-Visualizations/01-Training-History/single_digit.gif" width="280" height="280"/>
 
 The second image shows basically the same animation as above, except rather than animating it, the frames are arranged in a tiled image. This was a different digit, in this case a 6.
 
-<img src="https://github.com/Kinvert/resume/blob/main/ml/autoencoders/mnist_visualizations_1_train_history/train_history.png" width="280" height="280"/>
+<img src="https://github.com/Kinvert/Machine-Learning/blob/master/Autoencoders/MNIST-Visualizations/01-Training-History/train_history.png" width="280" height="280"/>
 
 ## YouTube Video
 
