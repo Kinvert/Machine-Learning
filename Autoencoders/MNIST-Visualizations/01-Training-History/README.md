@@ -1,4 +1,4 @@
-# MNIST Autoencoder Visualizations 01
+# MNIST Autoencoder Training History
 
 This is a project I did in July 2022. Some of the results can be seen below.
 
