@@ -9,3 +9,6 @@ A collection of small Machine Learning projects and examples.
   - MNIST Visualizations
 - Basic Classification
   - MNIST
+  - Fashion-MNIST
+    - Using Only OpenAI's ChatGPT
+    
