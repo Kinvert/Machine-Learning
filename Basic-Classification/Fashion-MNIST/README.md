@@ -18,10 +18,28 @@ This YouTube video is just a brief intro to the project.
 
 [![Discussion Video](https://img.youtube.com/vi/IRfDrkd__VE/0.jpg)](https://www.youtube.com/watch?v=IRfDrkd__VE "Discussion Video")
 
-### 01
+### 01 - 87%
 
 YouTube video of the process.
 
 [![Discussion Video](https://img.youtube.com/vi/QJomBDmFJvo/0.jpg)](https://www.youtube.com/watch?v=QJomBDmFJvo "Discussion Video")
 
 Copied and pasted code from OpenAI ChatGPT to solve Fashion-MNIST. 87% on the Test data.
+
+### 02 - 90%
+
+YouTube video of the process.
+
+[![Discussion Video](https://img.youtube.com/vi/gRYWXy0u934/0.jpg)](https://www.youtube.com/watch?v=gRYWXy0u934 "Discussion Video")
+
+### 03 - 91%
+
+asdf
+
+### 04 - 92%
+
+asdf
+
+### 05 - Confusion Matrix
+
+asdf
