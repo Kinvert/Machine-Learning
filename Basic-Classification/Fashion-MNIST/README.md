@@ -2,15 +2,13 @@
 
 Doing some basic classification on Fashion-MNIST
 
-## OpenAI ChatGPT
+## CHALLENGE - Only Copy/Paste From OpenAI ChatGPT
 
 I did some of these purely using copy and paste from OpenAI's ChatGPT. It took some nudging, but it got fairly good results.
 
-For now I still doubt it could do great with someone brand new to coding.
+To continue to improve results, you do have to be very hands on.
 
-But honestly, even if they just paste in error messages, I think it can get 85% accuracy.
-
-In my case I was talking to it as an experienced coder would, talking about things like validation accuracy etc.
+In my case I was talking to it as an experienced coder would, talking about things like validation accuracy etc. Directly mentioning errors and asking it to fix them. Stuff like that.
 
 ### 00 - Introduction
 
@@ -32,11 +30,11 @@ YouTube video of the process.
 
 [![Discussion Video](https://img.youtube.com/vi/gRYWXy0u934/0.jpg)](https://www.youtube.com/watch?v=gRYWXy0u934 "Discussion Video")
 
-### 03 - 91%
+### 03 - 91% Functional API RESNET
 
 asdf
 
-### 04 - 92%
+### 04 - 92% Functional API RESNET More Convs
 
 asdf
 
