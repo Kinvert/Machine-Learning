@@ -32,12 +32,20 @@ YouTube video of the process.
 
 ### 03 - 91% Functional API RESNET
 
-asdf
+YouTube video of the process.
+
+[![Discussion Video](https://img.youtube.com/vi/NWU1FjCjMBI/0.jpg)](https://www.youtube.com/watch?v=NWU1FjCjMBI "Discussion Video")
 
 ### 04 - 92% Functional API RESNET More Convs
 
-asdf
+YouTube video of the process.
+
+[![Discussion Video](https://img.youtube.com/vi/WmwVHQT2cNc/0.jpg)](https://www.youtube.com/watch?v=WmwVHQT2cNc "Discussion Video")
 
 ### 05 - Confusion Matrix
+
+asdf
+
+### 06 - Colored Prediction Tiles
 
 asdf
