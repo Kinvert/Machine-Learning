@@ -167,7 +167,9 @@ async function showConfusion(model, data) {
   const [preds, labels] = doPrediction(model, data);
   const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);
   const container = {name: 'Confusion Matrix', tab: 'Evaluation'};
-  tfvis.render.confusionMatrix(container, {values: confusionMatrix, tickLabels: classNames});
+  tfvis.render.confusionMatrix(container,
+    {values: confusionMatrix, tickLabels: classNames},
+    {shadeDiagonal: false});
 
   labels.dispose();
 }
@@ -182,7 +184,7 @@ async function showPredGrid(model, data) {
   const preds = model.predict(testxs).argMax(-1);
 
   const surface =
-    tfvis.visor().surface({ name: 'Predictions', tab: 'Evaluation'});  
+    tfvis.visor().surface({ name: 'Predictions', tab: 'Evaluation'});
 
   const numPreds = preds.shape[0];
 
