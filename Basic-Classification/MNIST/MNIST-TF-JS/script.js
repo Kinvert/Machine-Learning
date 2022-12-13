@@ -97,7 +97,6 @@ function getModel() {
     });
   }
   
-
 async function showExamples(data) {
   // Create a container in the visor
   const surface =
@@ -138,6 +137,7 @@ async function run() {
   await train(model, data);
   await showAccuracy(model, data);
   await showConfusion(model, data);
+  await showPredGrid(model, data);
 }
 
 const classNames = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -153,7 +153,6 @@ function doPrediction(model, data, testDataSize = 500) {
   testxs.dispose();
   return [preds, labels];
 }
-
 
 async function showAccuracy(model, data) {
   const [preds, labels] = doPrediction(model, data);
@@ -173,5 +172,53 @@ async function showConfusion(model, data) {
   labels.dispose();
 }
 
-document.addEventListener('DOMContentLoaded', run);
+async function showPredGrid(model, data) {
+  const TEST_DATA_SIZE = 100;
+  const IMAGE_WIDTH = 28;
+  const IMAGE_HEIGHT = 28;
+  const testData = data.nextTestBatch(TEST_DATA_SIZE);
+  const testxs = testData.xs.reshape([TEST_DATA_SIZE, IMAGE_WIDTH, IMAGE_HEIGHT, 1]);
+  const labels = testData.labels.argMax(-1);
+  const preds = model.predict(testxs).argMax(-1);
 
+  const surface =
+    tfvis.visor().surface({ name: 'Predictions', tab: 'Evaluation'});  
+
+  const numPreds = preds.shape[0];
+
+  // Create a canvas element to render each example
+  for (let i = 0; i < numPreds; i++) {
+    const imageTensor = tf.tidy(() => {
+      // Reshape the image to 28x28 
+      let img = testData.xs
+        .slice([i, 0], [1, 784])
+        .reshape([28, 28, 1]);
+      let valR = 0.00;
+      let valG = 0.00;
+      const valB = 0.50;
+      if (preds.dataSync()[i] == labels.dataSync()[i]) {
+        valR = 0.50;
+        valG = 1.00;
+      }
+      else {
+        valR = 1.00;
+        valG = 0.50;
+      }
+      let image = tf.concat([tf.mul(img, valR), tf.mul(img, valG), tf.mul(img, valB)], -1);
+      return image;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 28;
+    canvas.height = 28;
+    canvas.style = 'margin: 4px;';
+    await tf.browser.toPixels(imageTensor, canvas);
+    surface.drawArea.appendChild(canvas);
+
+    imageTensor.dispose();
+    }
+
+  testxs.dispose();
+}
+
+document.addEventListener('DOMContentLoaded', run);
