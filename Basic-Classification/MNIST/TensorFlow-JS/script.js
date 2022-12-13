@@ -134,10 +134,12 @@ async function run() {
   const model = getModel();
   tfvis.show.modelSummary({name: 'Model Architecture', tab: 'Model'}, model);
   
+  
   await train(model, data);
+  await showPredGridD3(model, data);
+  await showPredGrid(model, data);
   await showAccuracy(model, data);
   await showConfusion(model, data);
-  await showPredGrid(model, data);
 }
 
 const classNames = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -221,6 +223,63 @@ async function showPredGrid(model, data) {
     }
 
   testxs.dispose();
+}
+
+async function showPredGridD3(model, data) {
+  const testData = data.nextTestBatch(101); // 100 images
+  const testxs = testData.xs.reshape([101, 28, 28, 1]);
+  const labels = testData.labels.argMax(-1);
+  const preds = model.predict(testxs).argMax(-1);
+
+  const numPreds = preds.shape[0];
+
+  const canvas = d3.select('#chart-area') // 10X10 sized canvas
+    .append('canvas')
+    .attr('width', 280)
+    .attr('height', 280);
+
+  const ctx = canvas.node().getContext('2d');
+
+  d3.select('#chart-area')
+    .selectAll('canvas')
+    .data(testData.xs.slice([0, 0], [numPreds, 784]).unstack())
+    .enter()
+    .append('canvas')
+    .attr('width', 28)
+    .attr('height', 28)
+    .style('margin', '4px')
+    .each(function(imageTensor, i) {
+      let img = tf.tidy(() => imageTensor.reshape([28, 28, 1]));
+      let valR = 0.00;
+      let valG = 0.00;
+      const valB = 0.50;
+      if (preds.dataSync()[i-1] == labels.dataSync()[i-1]) {
+        valR = 0.50;
+        valG = 1.00;
+      } else {
+        valR = 1.00;
+        valG = 0.50;
+      }
+      let alpha = tf.ones([28, 28, 1]); // Alpha channel
+      let image = tf.concat([tf.mul(img, valR), tf.mul(img, valG), tf.mul(img, valB), alpha], -1).reshape([28, 28, 4]); // Create what goes in to ImageData
+
+      // Create Image Data - 100 X 28 X 28 X 4
+      let imageData = new ImageData(
+        new Uint8ClampedArray(tf.mul(image, 255).dataSync()),
+        28,
+        28
+      );
+
+      // Draw the tile
+      ctx.putImageData(imageData, ((i-1) % 10) * 28, Math.floor((i-1) / 10) * 28);
+      img.dispose();
+    });
+
+    d3.selectAll('canvas')
+      .filter(function() {
+        return this !== canvas.node();
+      })
+    .remove();
 }
 
 document.addEventListener('DOMContentLoaded', run);
