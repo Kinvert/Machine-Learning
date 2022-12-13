@@ -50,4 +50,6 @@ YouTube video of the process.
 
 ### 06 - Colored Prediction Tiles
 
-asdf
+YouTube video of the process.
+
+[![Discussion Video](https://img.youtube.com/vi/aR8ohZeKC_s/0.jpg)](https://www.youtube.com/watch?v=aR8ohZeKC_s "Discussion Video")
