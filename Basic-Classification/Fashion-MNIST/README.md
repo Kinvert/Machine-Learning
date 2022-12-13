@@ -44,7 +44,9 @@ YouTube video of the process.
 
 ### 05 - Confusion Matrix
 
-asdf
+YouTube video of the process.
+
+[![Discussion Video](https://img.youtube.com/vi/CK5Ec8m7wQE/0.jpg)](https://www.youtube.com/watch?v=CK5Ec8m7wQE "Discussion Video")
 
 ### 06 - Colored Prediction Tiles
 
