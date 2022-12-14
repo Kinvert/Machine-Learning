@@ -1,4 +1,4 @@
-[logo]: https://github.com/Kinvert/resume/blob/main/zfiles/youtube_logo.png
+[logo]: https://github.com/Kinvert/Machine-Learning/blob/master/zData/youtube_logo.png
 
 # Machine-Learning
 
