@@ -29,7 +29,7 @@ A collection of small Machine Learning projects and examples.
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
 - [Matlab/Octave](https://github.com/Kinvert/Machine-Learning/search?l=MATLAB)
   - [![Youtube Link][logo]](https://youtu.be/6tUtbAbLr84) &nbsp; [MNIST Matlab-Octave](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/Matlab-Octave)
-- Python / [Jupyter Notebook(https://github.com/Kinvert/Machine-Learning/search?l=Jupyter+Notebook)
+- Python / [Jupyter Notebook](https://github.com/Kinvert/Machine-Learning/search?l=Jupyter+Notebook)
   - TensorFlow
     - Pretty Much Everything will update this later
 
@@ -40,4 +40,7 @@ coming soon
 <img src="https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png" width="280" height="280"/>
 
 [![Fashion-MNIST](https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png)](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST "Discussion Video")
+
+[<img alt="Fashion-MNIST" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png" />](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST)
+
 
