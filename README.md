@@ -37,10 +37,4 @@ A collection of small Machine Learning projects and examples.
 
 coming soon
 
-<img src="https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png" width="280" height="280"/>
-
-[![Fashion-MNIST](https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png)](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST "Discussion Video")
-
 [<img alt="Fashion-MNIST" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Basic-Classification/Fashion-MNIST/ChatGPT-06_result.png" />](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST)
-
-
