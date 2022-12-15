@@ -3,4 +3,5 @@
 */.ipynb_checkpoints/*
 
 # MNIST idx1-ubyte and idx3-ubyte
-*/**.idx**
+*/.idx1-ubyte/*
+*/.idx3-ubyte/*
