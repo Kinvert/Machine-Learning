@@ -1,2 +1,6 @@
+# Jupyter Notebook
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+
+# MNIST idx1-ubyte and idx3-ubyte
+*/.idx*
