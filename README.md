@@ -12,9 +12,9 @@ A collection of small Machine Learning projects and examples.
   - CIFAR-10 Visualizations - Incomplete
   - [MNIST Visualizations](https://github.com/Kinvert/Machine-Learning/tree/master/Autoencoders/MNIST-Visualizations)
 - [Basic Classification](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification)
-  - CIFAR-10
+  - [CIFAR-10](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/CIFAR-10)
     - [![Youtube Link][logo]](https://youtu.be/WatCaYXlmto) &nbsp; [Using Only OpenAI's ChatGPT](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/CIFAR-10)
-  - Fashion-MNIST
+  - [Fashion-MNIST](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST)
     - [![Youtube Link][logo]](https://youtu.be/IRfDrkd__VE) &nbsp; [Using Only OpenAI's ChatGPT](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/Fashion-MNIST)
   - [MNIST](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST)
     - [TensorFlow GPU](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-GPU)
