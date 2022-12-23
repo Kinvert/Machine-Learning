@@ -20,12 +20,17 @@ A collection of small Machine Learning projects and examples.
     - [TensorFlow GPU](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-GPU)
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
     - [![Youtube Link][logo]](https://youtu.be/6tUtbAbLr84) &nbsp; [Matlab-Octave](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/Matlab-Octave)
+- [CUDA](https://github.com/Kinvert/Machine-Learning/tree/master/CUDA)
+  - [OpenAI ChatGPT CUDA Lessons](https://github.com/Kinvert/Machine-Learning/tree/master/CUDA/ChatGPT-CUDA_Lessons)
+  - Simple CUDA Functions Such as SAXPY Coming Soon
     
 ## By Language / Library
 
-- CPP
-  - MNIST in progress
-  - Eigen in progress
+- [CPP](https://github.com/Kinvert/Machine-Learning/search?l=C%2B%2B)
+  - [MNIST](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/CPP) in progress
+  - [Eigen](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/CPP) in progress
+- [CUDA](https://github.com/Kinvert/Machine-Learning/search?l=CUDA)
+  - [OpenAI ChatGPT CUDA Lessons]((https://github.com/Kinvert/Machine-Learning/tree/master/CUDA/ChatGPT-CUDA_Lessons))
 - [JavaScript](https://github.com/Kinvert/Machine-Learning/search?l=JavaScript)
   - TensorFlow JS
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
