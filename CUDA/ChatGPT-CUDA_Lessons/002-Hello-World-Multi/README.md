@@ -107,4 +107,27 @@ Finally, we return 0 to indicate that the program has run successfully.
 
 This code example demonstrates how to launch a 2D grid of threads in CUDA C++ and how to calculate the 2D thread index using the `blockIdx` and `threadIdx` variables. It also shows how to use the `printf` function to print messages from the kernel.
 
+## Output
 
+Here is an example of the output that you might see when running this code:
+
+```cpp
+Hello from thread (0, 0)!
+Hello from thread (1, 0)!
+Hello from thread (2, 0)!
+Hello from thread (3, 0)!
+Hello from thread (4, 0)!
+Hello from thread (0, 1)!
+Hello from thread (1, 1)!
+Hello from thread (2, 1)!
+Hello from thread (3, 1)!
+Hello from thread (4, 1)!
+```
+
+Note that the order of the messages may not be exactly as shown above, due to the parallel nature of the threads. However, you should see that the messages are printed in a grid pattern, with the first coordinate representing the column and the second coordinate representing the row.
+
+This example shows how to use CUDA C++ to launch a 2D grid of threads and how to calculate the 2D thread index using the `blockIdx` and `threadIdx` variables. It also demonstrates how to use the `printf` function to print messages from the kernel.
+
+**Note: Here is the output in my case**
+
+<img alt="Fashion-MNIST" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/CUDA/ChatGPT-CUDA_Lessons/002-Hello-World-Multi/output.png" />
