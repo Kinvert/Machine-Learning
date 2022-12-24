@@ -83,6 +83,8 @@ To verify that the CUDA Toolkit is properly installed and that your GPU is recog
 
 In this lesson, we learned how to install the necessary software for writing and executing CUDA C++ programs: the NVIDIA GPU drivers, the CUDA Toolkit, and the cuDNN library (optional). We also learned how to verify the installation. In the next lesson, we will start writing and executing our first CUDA C++ program.
 
+## Troubleshooting
+
 **Keith: That looks great! Thank you. Can you please also give some common troubleshooting steps?**
 
 Certainly! Here are some common issues that you may encounter when setting up the environment for CUDA C++, and some troubleshooting steps to help you resolve them:
