@@ -1,3 +1,5 @@
+**Note: This lesson was written by OpenAI's ChatGPT.**
+
 ## Introduction
 
 In this code example, we will learn how to write and execute a simple kernel in CUDA C++. A kernel is a function that is executed on the GPU by many threads concurrently. We will also learn how to synchronize the host and device and how to print output from the host and device.
