@@ -20,6 +20,7 @@ In this course, we will learn how to write and execute CUDA C++ programs to acce
   - Write and execute our first CUDA C++ program
   - Understand the structure of a CUDA C++ program
   - Learn about the host and device functions
+  - Write a multi-threaded Hello World program
 - **Thread Hierarchy**
   - Understand the concept of threads and thread blocks
   - Learn about the hierarchy of threads in CUDA
