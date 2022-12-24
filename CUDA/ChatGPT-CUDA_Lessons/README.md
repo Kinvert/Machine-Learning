@@ -1,3 +1,5 @@
+[logo]: https://github.com/Kinvert/Machine-Learning/blob/master/zData/youtube_logo.png
+
 **Keith: We are going to create a series of lessons together, teaching students CUDA in C++. These lessons will go all the way from Installation, to Hello World, to Vector Addition etc, and several other intermediate topics, all the way up to solving MNIST with CUDA and C++.**
 
 **Can you please write out the introduction and outline for this CUDA Course? It will go in the README.md file.**
@@ -11,7 +13,7 @@ CUDA (Compute Unified Device Architecture) is a parallel computing platform and 
 In this course, we will learn how to write and execute CUDA C++ programs to accelerate our applications using the power of NVIDIA GPUs. We will start with the basics, such as installation and setting up the development environment, and gradually move on to more advanced topics, such as memory management and performance optimization.
 
 ## Outline
-- Installation and Setting up the Development Environment
+- [![Youtube Link][logo]](https://youtu.be/sOysT-gWyBo) &nbsp; [Installation and Setting up the Development Environment](https://github.com/Kinvert/Machine-Learning/tree/master/CUDA/ChatGPT-CUDA_Lessons/000-Installation)
   - Install the NVIDIA GPU drivers
   - Install the CUDA Toolkit
   - Install the cuDNN library (optional)

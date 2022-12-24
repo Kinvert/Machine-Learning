@@ -1,4 +1,8 @@
-**Note: They did the markdown great, but it renders that way. So I had to go back through and do the markdown to make it look how ChatGPT wrote it.**
+**Note: To be honest, you might want to find a better source for the installation itself. But either way, this is what ChatGPT said.**
+
+Video:
+
+[![Introduction Video](https://img.youtube.com/vi/sOysT-gWyBo/0.jpg)](https://www.youtube.com/watch?v=sOysT-gWyBo "Introduction Video")
 
 **Keith: I just realized that the very first lesson for Cuda and C++ is to help the students install what they need. Can you please create a lesson that will teach Windows, Mac, and Linux users how to install everything they need to be able to do these examples?**
 
@@ -105,3 +109,5 @@ Certainly! Here are some common issues that you may encounter when setting up th
   - Make sure that the CUDA Toolkit is properly installed and that the `nvcc` compiler is in the `bin` directory of the CUDA Toolkit.
   
 I hope these troubleshooting steps are helpful! If you encounter any other issues or if you have any questions, don't hesitate to ask.
+
+**Note: Again, I suggest you find good up to date instructions for your system to do the installation.**
