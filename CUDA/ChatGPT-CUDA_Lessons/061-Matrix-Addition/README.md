@@ -22,16 +22,16 @@ where $C_{i,j}$ is the element in the $i$-th row and $j$-th column of matrix $C$
 
 For example, given the following matrices $A$ and $B$:
 
-${\left\lbrack \matrix{A_{1,1} & A_{1,2} \cr A_{2,1} & A_{2,2}} \right\rbrack} = {\left\lbrack \matrix{1 & 2 \cr 3 & 4} \right\rbrack}$
+$A = {\left\lbrack \matrix{A_{1,1} & A_{1,2} \cr A_{2,1} & A_{2,2}} \right\rbrack} = {\left\lbrack \matrix{1 & 2 \cr 3 & 4} \right\rbrack}$
 
-$B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}$
+$B = {\left\lbrack \matrix{B_{1,1} & B_{1,2} \cr B_{2,1} & B_{2,2}} \right\rbrack} = {\left\lbrack \matrix{5 & 6 \cr 7 & 8} \right\rbrack}$
 
 The matrix sum $C$ is calculated as follows:
 
-$C = \begin{bmatrix} 1+5 & 2+6 \\ 3+7 & 4+8 \end{bmatrix}$
+$C = {\left\lbrack \matrix{C_{1,1} & C_{1,2} \cr C_{2,1} & C_{2,2}} \right\rbrack} = {\left\lbrack \matrix{1+5 & 2+6 \cr 3+7 & 4+8} \right\rbrack}$
 
 Which results in the following matrix $C$:
 
-$C = \begin{bmatrix} 6 & 8 \\ 10 & 12 \end{bmatrix}$
+$C = {\left\lbrack \matrix{C_{1,1} & C_{1,2} \cr C_{2,1} & C_{2,2}} \right\rbrack} = {\left\lbrack \matrix{6 & 8 \cr 10 & 12} \right\rbrack}$
 
 Matrix addition is an important operation that is used in many applications, including image processing, machine learning, and scientific computing. In this lesson, we will learn how to perform matrix addition using C++ and the CUDA programming platform.
