@@ -22,16 +22,16 @@ where $C_{i,j}$ is the element in the $i$-th row and $j$-th column of matrix $C$
 
 For example, given the following matrices $A$ and $B$:
 
-$A = \begin{bmatrix} 1 & 2 \ 3 & 4 \end{bmatrix}$
+$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}$
 
-$B = \begin{bmatrix} 5 & 6 \ 7 & 8 \end{bmatrix}$
+$B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}$
 
 The matrix sum $C$ is calculated as follows:
 
-$C = \begin{bmatrix} 1+5 & 2+6 \ 3+7 & 4+8 \end{bmatrix}$
+$C = \begin{bmatrix} 1+5 & 2+6 \\ 3+7 & 4+8 \end{bmatrix}$
 
 Which results in the following matrix $C$:
 
-$C = \begin{bmatrix} 6 & 8 \ 10 & 12 \end{bmatrix}$
+$C = \begin{bmatrix} 6 & 8 \\ 10 & 12 \end{bmatrix}$
 
 Matrix addition is an important operation that is used in many applications, including image processing, machine learning, and scientific computing. In this lesson, we will learn how to perform matrix addition using C++ and the CUDA programming platform.
