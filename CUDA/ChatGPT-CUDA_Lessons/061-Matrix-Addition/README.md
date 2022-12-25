@@ -22,7 +22,7 @@ where $C_{i,j}$ is the element in the $i$-th row and $j$-th column of matrix $C$
 
 For example, given the following matrices $A$ and $B$:
 
-$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}$
+${\left\lbrack \matrix{A_{1,1} & A_{1,2} \cr A_{2,1} & A_{2,2}} \right\rbrack} = {\left\lbrack \matrix{1 & 2 \cr 3 & 4} \right\rbrack}$
 
 $B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}$
 
