@@ -120,4 +120,4 @@ The output of this program should be the message "Hello World" printed to the co
 
 ## Output
 
-<img alt="OpenAI ChatGPT CUDA Lesson Hello World Result" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/CUDA/ChatGPT-CUDA_Lessons/003-Hello-World-Async/ChatGPT-CUDA-Lesson-003-Output.png" />
+<img alt="OpenAI ChatGPT CUDA Lesson Hello World Result" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/CUDA/ChatGPT-CUDA_Lessons/010-Hello-World/013-Hello-World-Async/ChatGPT-CUDA-Lesson-013-Output.png" />

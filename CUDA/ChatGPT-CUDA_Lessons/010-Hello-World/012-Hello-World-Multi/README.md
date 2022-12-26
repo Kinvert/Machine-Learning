@@ -130,4 +130,4 @@ This example shows how to use CUDA C++ to launch a 2D grid of threads and how to
 
 **Note: Here is the output in my case**
 
-<img alt="OpenAI ChatGPT CUDA Lesson Hello World Result" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/CUDA/ChatGPT-CUDA_Lessons/002-Hello-World-Multi/output.png" />
+<img alt="OpenAI ChatGPT CUDA Lesson Hello World Result" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/CUDA/ChatGPT-CUDA_Lessons/010-Hello-World/012-Hello-World-Multi/output.png" />
