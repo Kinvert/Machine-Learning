@@ -1,12 +1,12 @@
 # Matrix Addition
 
-- Introduction to matrix addition
+- [Introduction](#introduction)
   - Definition of matrix addition
   - Example of matrix addition
-- Matrix addition in C++
+- [Matrix addition in C++](#matrix-addition-in-c)
   - Definition of matrix addition function
   - Example of matrix addition using a nested loop
-- Naive matrix addition in CUDA
+- [Naive CUDA Approach](#naive-cuda-approach)
   - Definition of kernel function for matrix addition
   - Example of launching the kernel with one thread block
 - Optimized matrix addition in CUDA
