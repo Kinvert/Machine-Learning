@@ -1,12 +1,12 @@
 # Matrix Addition
 
-- [Introduction](#introduction)
+- Introduction to matrix addition
   - Definition of matrix addition
   - Example of matrix addition
-- [Matrix addition in C++](#matrix-addition-in-c)
+- Matrix addition in C++
   - Definition of matrix addition function
   - Example of matrix addition using a nested loop
-- [Naive CUDA Approach](#naive-cuda-approach)
+- Naive matrix addition in CUDA
   - Definition of kernel function for matrix addition
   - Example of launching the kernel with one thread block
 - Optimized matrix addition in CUDA
@@ -218,11 +218,240 @@ Finally, the `main` function returns 0 to indicate that the program has complete
 
 ## Optimized matrix addition in CUDA
 
+```cpp
+#define BLOCK_SIZE 16
 
+// Kernel function for matrix addition
+__global__ void matrixAddKernel(float *A, float *B, float *C, int numRows, int numCols) {
+```
 
+In this code snippet, the kernel function `matrixAddKernel` is defined for performing matrix addition on two matrices `A` and `B` and storing the result in `C`. The kernel function takes in four arguments:
 
+`float *A`: A pointer to the matrix A, which is stored in device memory.
+`float *B`: A pointer to the matrix B, which is stored in device memory.
+`float *C`: A pointer to the matrix C, which will store the result of the matrix addition and is also stored in device memory.
+`int numRows`: The number of rows in the matrices A, B, and C.
+`int numCols`: The number of columns in the matrices A, B, and C.
+The `__global__` keyword indicates that this function will be called from the host (CPU) and executed on the device (GPU).
 
+Now, let's consider a naive implementation of matrix addition using CUDA. In this implementation, we launch a kernel for each element in the output matrix C, with each thread taking care of one element. The kernel function would look something like this:
 
+```cpp
+__global__ void matrixAddKernel(float *A, float *B, float *C, int numRows, int numCols) {
+    int row = blockIdx.x;
+    int col = threadIdx.x;
+    C[row * numCols + col] = A[row * numCols + col] + B[row * numCols + col];
+}
+```
 
+Here, we launch `numRows` blocks, each with `numCols` threads. Each thread calculates the corresponding element of the output matrix `C` using the corresponding elements from the input matrices `A` and `B`.
 
+This naive implementation has a few drawbacks:
 
+- It requires a large number of threads, which can lead to inefficient utilization of the GPU resources.
+- It has a high global memory access frequency, as each thread accesses the input matrices `A` and `B` and the output matrix `C` stored in global memory. This can lead to slow execution times.
+
+To address these issues, the kernel function in the provided code snippet uses a technique called tiling, which involves dividing the matrices A and B into smaller sub-matrices or tiles and storing them in shared memory. This reduces the global memory access frequency, as shared memory has much lower access latencies compared to global memory.
+
+The tiling is implemented as follows:
+
+- The matrices `A` and `B` are tiled by storing them in shared memory arrays `sharedA` and `sharedB`, respectively.
+- The tiling is performed in a way that each tile fits within a single block of threads.
+- The size of each tile is determined by the `BLOCK_SIZE` macro, which is set to 16 in this case.
+- The indices of the threads within a block are used to index into the shared memory arrays `sharedA` and `sharedB`.
+
+For example, if the `BLOCK_SIZE` is set to 16, each block of threads will process a 16x16 tile of the input matrices `A` and `B`. The threads within a block can access the elements of the tile using their indices within the block.
+
+Once the input matrices are tiled and stored in shared memory, the matrix addition can be performed using the shared memory arrays `sharedA` and `sharedB`. This reduces the global memory access frequency and improves the performance of the kernel.
+
+Finally, the kernel function uses the shared memory arrays `sharedA` and `sharedB` to perform the matrix addition. If the current thread has a valid index within the input matrices, it writes the result to the output matrix `C`.
+
+This approach to matrix addition using shared memory and tiling is an improvement over the naive approach of directly accessing the input matrices `A` and `B` in global memory. By reducing the number of global memory accesses and utilizing shared memory, this approach can improve the performance of the kernel. However, it should be noted that this approach may not always provide the best performance, and it may be necessary to explore other optimization techniques depending on the specific problem and hardware configuration.
+
+```cpp
+// Matrix type
+typedef std::vector<std::vector<float>> Matrix;
+
+#define BLOCK_SIZE 16
+
+// Kernel function for matrix addition
+__global__ void matrixAddKernel(float *A, float *B, float *C, int numRows, int numCols) {
+    // Use shared memory to improve performance
+    __shared__ float sharedA[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float sharedB[BLOCK_SIZE][BLOCK_SIZE];
+```
+
+This code defines the `matrixAddKernel` function, which is a CUDA kernel function that will be executed on the GPU. The function takes in two input matrices `A` and `B`, and an output matrix `C`. The function also takes in the number of rows and columns in the matrices.
+
+The kernel function uses shared memory to improve performance. Shared memory is a type of memory that is shared among threads in a thread block. It is faster to access shared memory than global memory (the memory visible to all threads). The kernel function declares two shared memory arrays `sharedA` and `sharedB` for storing the input matrices.
+
+```cpp
+// Calculate the row and column indices of the element to be processed
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+```
+
+This code calculates the row and column indices of the element that the current thread will process. The `blockIdx` and `threadIdx` variables are built-in variables in CUDA that hold the block and thread indices, respectively. The `blockDim` variable holds the dimensions of the thread block.
+
+```cpp
+    // Initialize shared memory
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            sharedA[i][j] = (i < numRows && j < numCols) ? A[i * numCols + j] : 0;
+            sharedB[i][j] = (i < numRows && j < numCols) ? B[i * numCols + j] : 0;
+        }
+    }
+```
+
+This code initializes the shared memory arrays `sharedA` and `sharedB` with the values from the input matrices `A` and `B`. If the indices `i` and `j` are out of bounds (greater than or equal to the number of rows or columns), the elements are initialized to 0.
+
+```cpp
+    __syncthreads();
+```
+
+This code inserts a synchronization point that forces all threads in the block to wait until all threads have reached this point before continuing. This is necessary to ensure that the shared memory arrays are fully initialized before the matrix addition is performed.
+
+```cpp
+    // Matrix addition
+    if (row < numRows && col < numCols) {
+        C[row * numCols + col] = sharedA[threadIdx.y][threadIdx.x] + sharedB[threadIdx.y][threadIdx.x];
+    }
+}
+```
+
+This code performs the matrix addition using the shared memory arrays sharedA and sharedB. The element at position `(threadIdx.y, threadIdx.x)` in the shared memory arrays is added to the element at position(`row`, `col`) in the output matrix.
+
+```cpp
+int main() {
+    // Initialize two matrices
+    Matrix A = {{1, 2}, {3, 4}};
+    Matrix B = {{5, 6}, {7, 8}};
+
+    // Flatten matrices into single arrays
+    std::vector<float> A_flat;
+    std::vector<float> B_flat;
+    for (int i = 0; i < A.size(); i++) {
+        A_flat.insert(A_flat.end(), A[i].begin(), A[i].end());
+        B_flat.insert(B_flat.end(), B[i].begin(), B[i].end());
+    }
+```
+
+This code initializes two matrices `A` and `B` and flattens them into single arrays `A_flat` and `B_flat`, respectively. The matrices are flattened by iterating over each row and inserting its elements into the end of the corresponding flattened array. This is done using the `insert` function, which takes an iterator to the position in the array where the elements should be inserted, and two iterators to the first and past-the-end elements of the range of elements to be inserted. In this case, the range of elements is defined by the `begin` and `end` iterators of each row of the matrix. This results in `A_flat` and `B_flat` being filled with the elements of `A` and `B`, respectively, in row-major order.
+
+```cpp
+    // Allocate memory on the GPU
+    int size = A_flat.size();
+    int numRows = A.size();
+    int numCols = A[0].size();
+    float *d_A, *d_B, *d_C;
+    cudaMalloc(&d_A, size * sizeof(float));
+    cudaMalloc(&d_B, size * sizeof(float));
+    cudaMalloc(&d_C, size * sizeof(float));
+```
+
+In this code snippet, the input matrices are first flattened into single arrays `A_flat` and `B_flat` using a nested loop. Then, the size of the matrices, as well as the number of rows and columns, are calculated.
+
+Next, three arrays on the GPU are allocated using cudaMalloc. The arrays `d_A`, `d_B`, and `d_C` will be used to store the data from `A_flat`, `B_flat`, and the result of the matrix addition, respectively. The size of each array is equal to the number of elements in the input matrices, which is calculated as `size`.
+
+This is an important step in the GPU matrix addition process because it allows the data to be transferred from the host (CPU) to the device (GPU) for processing. This is necessary because the GPU has its own memory space, which is separate from the main memory of the host. Allocating memory on the GPU and transferring data from the host to the device is a common pattern in GPU programming, and is necessary to take advantage of the parallel processing capabilities of the GPU.
+
+```cpp
+    // Copy data from host to device
+    cudaMemcpy(d_A, A_flat.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, B_flat.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+```
+
+This code copies the data from the host memory to the device memory. `cudaMemcpy` is a function provided by the CUDA runtime library that allows you to copy data between host and device memory. The function takes four arguments:
+
+- A pointer to the destination memory on the device. In this case, `d_A` and `d_B` are pointers to the device memory where the matrices `A` and `B` will be stored, respectively.
+
+- A pointer to the source memory on the host. `A_flat.data()` and `B_flat.data()` are pointers to the beginning of the `std::vector` objects `A_flat` and `B_flat`, respectively.
+
+- The size of the data to be copied, in bytes. `size * sizeof(float)` calculates the size of the data by multiplying the number of elements in the vectors by the size of a single element (a float).
+
+- The direction of the copy. `cudaMemcpyHostToDevice` specifies that the data is being copied from the host to the device.
+
+This code is necessary because the kernel function `matrixAddKernel` runs on the device, and it needs to operate on data stored in the device memory. By copying the data from the host to the device, we make it accessible to the kernel function.
+
+```cpp
+    // Set block and grid sizes
+    int blockSize = 16;
+    dim3 blockDim(blockSize, blockSize, 1);
+    dim3 gridDim((numCols + blockSize - 1) / blockSize, (numRows + blockSize - 1) / blockSize, 1);
+
+    // Launch kernel function
+    matrixAddKernel<<<gridDim, blockDim>>>(d_A, d_B, d_C, numRows, numCols);
+```
+
+The `blockSize` variable is defined as 16, which is the size of the shared memory arrays sharedA and sharedB.
+
+The `blockDim` variable specifies the number of threads in each block. In this case, it is set to a 2D block of size `(16, 16, 1)`, which means each block has 16 rows and 16 columns of threads, and 1 layer.
+
+The `gridDim` variable specifies the number of blocks in the grid. It is set to a 2D grid of size `((numCols + blockSize - 1) / blockSize, (numRows + blockSize - 1) / blockSize, 1)`, which means the grid has `((numCols + 15) / 16, (numRows + 15) / 16)` number of blocks. This is used to ensure that all elements in the input matrices are processed.
+
+Finally, the kernel function is launched using the `<<<gridDim, blockDim>>>` syntax, with `d_A`, `d_B`, `d_C`, `numRows`, and `numCols` as the arguments. This launches the kernel function on the GPU with the specified grid and block configurations.
+
+```cpp
+    cudaDeviceSynchronize();
+```
+
+The `cudaDeviceSynchronize` function is a blocking function that waits for all previously launched kernel functions to complete before it returns. This function is useful for ensuring that the kernel has completed before continuing with the host code. In this case, it is used to ensure that the `matrixAddKernel` has completed before the next step of copying the data from the device to the host.
+
+It is important to note that `cudaDeviceSynchronize` should be used sparingly as it introduces a performance overhead. It should only be used when it is necessary to ensure that the kernel has completed before continuing with the host code. In general, it is better to use non-blocking functions, such as `cudaMemcpyAsync`, which allow the host code to continue while the kernel is still running.
+
+```cpp
+    // Copy data from device to host
+    std::vector<float> C_flat(size);
+    cudaMemcpy(C_flat.data(), d_C, size * sizeof(float), cudaMemcpyDeviceToHost);
+```
+
+The `cudaMemcpy` function is used to copy data from device memory to host memory. In this case, the data stored in the device memory at the address pointed to by `d_C` is copied to the host memory at the address pointed to by `C_flat.data()`. The size parameter specifies the number of bytes to be copied, and the `cudaMemcpyDeviceToHost` parameter indicates that the data is being copied from the device to the host.
+
+This is useful because the kernel function `matrixAddKernel` is executed on the GPU, and the result of the matrix addition is stored in device memory. To access the result on the host side, the data needs to be copied from the device memory to the host memory.
+
+After the data is copied, the `C_flat` vector contains the result of the matrix addition, which can be used to reconstruct the matrix `C`.
+
+```cpp
+    // Convert flattened array to matrix
+    Matrix C(numRows, std::vector<float>(numCols));
+    for (int i = 0; i < C.size(); i++) {
+        for (int j = 0; j < C[0].size(); j++) {
+            C[i][j] = C_flat[i * numCols + j];
+        }
+    }
+```
+
+This code converts the flattened array `C_flat` back into a matrix `C`. It does this by looping through each element in the matrix and setting the value to the corresponding element in the flattened array. The matrix indices `i` and `j` are used to calculate the corresponding index in the flattened array, which is `i * numCols + j`. This allows the matrix to be reconstructed by iterating through each row and column of the matrix.
+
+```cpp
+    // Print the result
+    std::cout << "Result:" << std::endl;
+    for (int i = 0; i < C.size(); i++) {
+        for (int j = 0; j < C[0].size(); j++) {
+            std::cout << C[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+```
+
+This code snippet converts the flattened result array `C_flat` into a matrix `C`, which is then printed to the console.
+
+The matrix `C` is initialized with `numRows` rows and `numCols` columns, using the `std::vector` constructor `std::vector<float>(numCols)`.
+
+Then, a nested loop iterates over the rows and columns of `C`, setting each element to the corresponding element in `C_flat`. The element at position `(i, j)` in `C` is set to the element at index `i * numCols + j` in `C_flat`.
+
+Finally, the matrix `C` is printed to the console using another nested loop. This prints each element of `C` separated by a space, and each row on a new line.
+
+```cpp
+    // Free GPU memory
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cudaFree(d_C);
+
+    return 0;
+}
+```
+
+This is the end of the main function. It prints the result of the matrix addition to the console and then frees the GPU memory that was allocated earlier. Finally, it returns 0 to indicate that the program has completed successfully.
+
+This code demonstrates how to perform matrix addition using CUDA. The kernel function uses shared memory to reduce global memory access frequency and improve performance. The input matrices are tiled and stored in shared memory, and the matrix addition is performed using the shared memory arrays. The result is then copied back to the host and printed to the console.
