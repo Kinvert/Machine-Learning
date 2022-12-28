@@ -6,5 +6,8 @@
 *.idx1-ubyte
 *.idx3-ubyte
 
+# gz files
+*.gz
+
 # CUDA C++
 *.out
