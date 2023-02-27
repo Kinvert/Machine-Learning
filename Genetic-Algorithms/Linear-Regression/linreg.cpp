@@ -17,13 +17,9 @@ struct Child {
 
 int main() {
 
-  // Loop Prep
-  int keepBest = 2u;      // How Many to Keep
-  int n = 1000u;          // How Many Babies
-  float ms[n];            // Slopes
-  float bs[n];            // Intercepts
-  int generations = 100u; // Number of Generations
-  int i = 0u;             // Initialize Iterator to Zero
+  int n = 100u;            // How Many Babies
+  int generations = 1000u; // Number of Generations
+  int i = 0u;              // Initialize Iterator to Zero
 
   // Randomize First Generation
   std::random_device rd;
@@ -40,29 +36,46 @@ int main() {
   // Main Loop
   while (i < generations) {
 
-    // For Child in Children
+    // Check Fitness
     for (int j = 0; j < n; j++) {
-      // Check Fitness
       children[j].fitness = std::abs(children[j].m - realM) + std::abs(children[j].b - realB);
     }
 
     // Sort by Fitness
     std::sort(children.begin(), children.end(), [](const Child& a, const Child& b) {
-        return a.fitness < b.fitness;
+      return a.fitness < b.fitness;
     });
 
-    // Select Chads
-
-    // Eliminate Soyjacks
-
     // Breed Chads (now legally)
+    float midM = (children[0].m + children[1].m) / 2.0f;
+    float diffM = std::abs(children[0].m - children[1].m);
+    float midB = (children[0].b + children[1].b) / 2.0f;
+    float diffB = std::abs(children[0].b - children[1].b);
+    std::normal_distribution<float> mutateM(midM, midM + diffM);
+    std::normal_distribution<float> mutateB(midB, midB + diffB);
+    for (int j = 0; j < n; j++) {
+      children[j].m = mutateM(gen);
+      children[j].b = mutateB(gen);
+      children[j].fitness = 0.0f;
+    }
 
     i++;
   }
 
   for (int j = 0; j < n; j++) {
+    children[j].fitness = std::abs(children[j].m - realM) + std::abs(children[j].b - realB);
+  }
+
+  std::sort(children.begin(), children.end(), [](const Child& a, const Child&b) {
+    return a.fitness < b.fitness;
+  });
+
+  for (int j = 0; j < n; j++) {
     std::cout << children[j].fitness << "\n";
   }
+
+  std::cout << "Prediction: M = " << children[0].m << "\nPrediction: B = " << children[0].b << "\n";
+  std::cout << "Real:       M = " << realM         << "\nPrediction: B = " << realB         << "\n";
 
   return 0;
 }
