@@ -1,7 +1,19 @@
+#include <algorithm>
 #include <iostream>
+#include <random>
+#include <vector>
 
-const int LO = -5u;
-const int HI = 5u;
+const float LO = -5.0f;
+const float HI = 5.0f;
+
+const float realM = 1.0f;
+const float realB = -1.0f;
+
+struct Child {
+  float fitness;
+  float m;
+  float b;
+};
 
 int main() {
 
@@ -14,17 +26,30 @@ int main() {
   int i = 0u;             // Initialize Iterator to Zero
 
   // Randomize First Generation
-  // https://stackoverflow.com/a/686373
-  float r3 = LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dist(LO, HI);
+
+  std::vector<Child> children(n);
+  for (int i = 0; i < n; i++) {
+    children[i].fitness = 0.0f;
+    children[i].m = dist(gen);
+    children[i].b = dist(gen);
+  }
 
   // Main Loop
   while (i < generations) {
 
-    // Check Fitness
-
-    // Store Fitness
+    // For Child in Children
+    for (int j = 0; j < n; j++) {
+      // Check Fitness
+      children[j].fitness = std::abs(children[j].m - realM) + std::abs(children[j].b - realB);
+    }
 
     // Sort by Fitness
+    std::sort(children.begin(), children.end(), [](const Child& a, const Child& b) {
+        return a.fitness < b.fitness;
+    });
 
     // Select Chads
 
@@ -32,9 +57,11 @@ int main() {
 
     // Breed Chads (now legally)
 
-    std::cout << "text\n";
-    std::cout << r3 << "\n";
     i++;
+  }
+
+  for (int j = 0; j < n; j++) {
+    std::cout << children[j].fitness << "\n";
   }
 
   return 0;
