@@ -38,6 +38,8 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
 - Python / [Jupyter Notebook](https://github.com/Kinvert/Machine-Learning/search?l=Jupyter+Notebook)
   - TensorFlow
     - Pretty Much Everything will update this later
+  - [tinygrad](https://github.com/tinygrad/tinygrad)
+    - [MNIST](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/tinygrad)
 
 ## Some Visualizations
 
