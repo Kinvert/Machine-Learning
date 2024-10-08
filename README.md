@@ -22,6 +22,7 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
     - [TensorFlow GPU](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-GPU)
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
     - [![Youtube Link][logo]](https://youtu.be/6tUtbAbLr84) &nbsp; [Matlab-Octave](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/Matlab-Octave)
+    - [![Youtube Link][logo]](https://youtu.be/DSgy-jBqZb0) &nbsp; [tinygrad](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/tinygrad)
     
 ## By Language / Library
 
