@@ -12,4 +12,24 @@ I did this with a simple Q Space and the Bellman Equation.
 
 Q Space:
 
-<div id="q-space" style="grid-template-columns: repeat(3, 50px);"><div class="q-cell" style="background-color: rgb(201, 53, 0);">-0.58</div><div class="q-cell" style="background-color: rgb(83, 171, 0);">0.35</div><div class="q-cell" style="background-color: rgb(12, 242, 0);">0.90</div><div class="q-cell" style="background-color: rgb(120, 134, 0);">0.06</div><div class="q-cell" style="background-color: rgb(183, 71, 0);">-0.44</div><div class="q-cell" style="background-color: rgb(12, 242, 0);">0.90</div><div class="q-cell" style="background-color: rgb(86, 168, 0);">0.32</div><div class="q-cell" style="background-color: rgb(12, 242, 0);">0.90</div><div class="q-cell" style="background-color: rgb(159, 95, 0);">-0.25</div><div class="q-cell" style="background-color: rgb(201, 53, 0);">-0.58</div><div class="q-cell" style="background-color: rgb(183, 71, 0);">-0.44</div><div class="q-cell" style="background-color: rgb(30, 224, 0);">0.76</div><div class="q-cell" style="background-color: rgb(201, 53, 0);">-0.58</div><div class="q-cell" style="background-color: rgb(0, 254, 0);">1.00</div><div class="q-cell" style="background-color: rgb(183, 71, 0);">-0.44</div><div class="q-cell" style="background-color: rgb(0, 254, 0);">1.00</div><div class="q-cell" style="background-color: rgb(201, 53, 0);">-0.58</div><div class="q-cell" style="background-color: rgb(245, 9, 0);">-0.92</div></div>
+<div id="q-space" style="display: grid; gap: 5px; margin-top: 20px; grid-template-columns: repeat(3, 50px);">
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(214, 40, 0);">-0.68</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(12, 242, 0);">0.90</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(76, 178, 0);">0.40</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(12, 242, 0);">0.90</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(214, 40, 0);">-0.68</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(89, 165, 0);">0.30</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(12, 242, 0);">0.90</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(69, 185, 0);">0.46</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(183, 71, 0);">-0.44</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(224, 30, 0);">-0.76</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(245, 9, 0);">-0.92</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(0, 254, 0);">1.00</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(201, 53, 0);">-0.58</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(0, 254, 0);">1.00</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(183, 71, 0);">-0.44</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(12, 242, 0);">0.90</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(127, 127, 0);">0.00</div>
+  <div class="q-cell" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background-color: rgb(159, 95, 0);">-0.25</div>
+</div>
+

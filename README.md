@@ -25,7 +25,7 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
     - [![Youtube Link][logo]](https://youtu.be/DSgy-jBqZb0) &nbsp; [tinygrad](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/tinygrad)
 - [Reinforcement Learning](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning)
   - [Q Learning](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning)
-    - [Live](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
+    - [Live](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
     
 ## By Language / Library
 
