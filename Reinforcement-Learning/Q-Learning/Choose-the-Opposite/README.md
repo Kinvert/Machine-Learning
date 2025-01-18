@@ -1,5 +1,7 @@
 # Choose the Opposite
 
+[TRY IT LIVE](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html)
+
 I made this game since I could never get Reinforcement Learning to work. I wanted something simple that was easy to debug, and I knew it had to be easily learnable.
 
 There are 3 boxes/buttons. To initialize the game, one of them is filled/clicked.
