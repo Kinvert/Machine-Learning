@@ -23,6 +23,7 @@
             display: grid;
             gap: 5px;
             margin-top: 20px;
+            justify-content: center;
         }
         .q-cell {
             width: 50px;
@@ -40,11 +41,11 @@
         .button-grid {
             display: grid;
             gap: 5px;
-            margin-top: 20px;
+            align-items: center;
         }
         .game-button {
-            width: 50px;
-            height: 50px;
+            width: 100px;
+            height: 100px;
             background-color: #eee;
         }
         .filled {
@@ -59,6 +60,12 @@
         .wrong-choice {
             background-color: red !important;
         }
+        .center-stuff {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -66,14 +73,40 @@
     <p>Training the AI to select empty buttons after a random initialization</p>
     <p>To initialize a random button is clicked</p>
     <p>To win the agent must click each unoccupied button once</p>
-    <div class="button-grid" id="buttons"></div>
-    <div id="stats"></div>
+    <h2 style="display: flex; justify-content: center;">PLAY HERE</h2>
+    <div class="center-stuff">
+        <div class="button-grid" id="buttons"></div>
+    </div>
+    <h3 id="game-status" style="display: flex; justify-content: center; margin-bottom: 30px;">Awaiting player input</h3>
+    <div class="center-stuff">
+        <label for="num-games">Number of Games:</label>
+        <input type="number" id="num-games" value="10" min="1">
+        <button id="train-button">Train</button>
+    </div>
+    <div class="center-stuff">
+        <label for="alpha-slider">Alpha (Learning Rate):</label>
+        <input type="range" id="alpha-slider" min="0" max="1" step="0.01" value="0.5">
+        <span id="alpha-value">0.5</span>
+    </div>
+    <div class="center-stuff">
+        <label for="gamma-slider">Gamma (Discount Factor):</label>
+        <input type="range" id="gamma-slider" min="0" max="1" step="0.01" value="0.9">
+        <span id="gamma-value">0.9</span>
+    </div>
+    <div class="center-stuff">
+        <label for="epsilon-slider">Epsilon (Exploration Rate):</label>
+        <input type="range" id="epsilon-slider" min="0" max="1" step="0.01" value="0.1">
+        <span id="epsilon-value">0.1</span>
+    </div>    
     <div id="q-space"></div>
+    <div id="stats"></div>
     <script>
         const NUM_ACTIONS = 3; // Number of buttons
-        const alpha = 0.25;  // Learning rate
-        const gamma = 0.9;  // Discount factor
+        let alpha = 0.25;  // Learning rate
+        let gamma = 0.9;  // Discount factor
         let epsilon = 0.25; // Exploration rate
+
+        let trainingSessions = 0;
 
         // Generate all possible states with one button filled
         function generateInitialStates() {
@@ -145,7 +178,7 @@
 
         function initializeButtons() {
             const buttonGrid = document.getElementById('buttons');
-            buttonGrid.style.gridTemplateColumns = `repeat(${NUM_ACTIONS}, 50px)`;
+            buttonGrid.style.gridTemplateColumns = `repeat(${NUM_ACTIONS}, 100px)`;
             for (let i = 0; i < NUM_ACTIONS; i++) {
                 const button = document.createElement('button');
                 button.className = 'game-button';
@@ -156,14 +189,12 @@
         }
 
         function train(numGames = NUM_GAMES) {
-            let gamesInWindow = 0;
-            let winsInWindow = 0;
             let totalGames = 0;
             let totalWins = 0;
+            trainingSessions++;
 
             for (let game = 1; game <= numGames; game++) {
                 totalGames++;
-                gamesInWindow++;
                 
                 // Random initial state
                 const initialStateIndex = Math.floor(Math.random() * INITIAL_STATES.length);
@@ -199,25 +230,12 @@
                 }
 
                 if (won) {
-                    winsInWindow++;
                     totalWins++;
                 }
-
-                // Show results every 10 games up to 100, then every 100
-                if (game < 10 || game <= 100 && game % 10 === 0 || game > 100 && game % 100 === 0) {
-                    const winRate = (totalWins / totalGames) * 100;
-                    let gameStr = game.toString().padStart(3, '0');
-                    document.getElementById('stats').innerHTML += 
-                        `Game ${gameStr}: Win rate: ${winRate.toFixed(1)}%, Init: ${initialStateIndex}, ` +
-                        `Moves: [${moves.join(', ')}]<br>`;
-                    
-                    if (game % 100 === 0) {
-                        winsInWindow = 0;
-                        gamesInWindow = 0;
-                        visualizeQSpace();
-                    }
-                }
             }
+            const winRate = (totalWins / totalGames) * 100;
+            document.getElementById('stats').innerHTML = `Session: ${trainingSessions} Game: ${numGames}: Win rate: ${winRate.toFixed(1)}%;<br>` + document.getElementById('stats').innerHTML;
+            visualizeQSpace();
         }
 
         function resetButtons() {
@@ -232,6 +250,7 @@
             buttons.forEach((button, index) => {
                 button.onclick = async () => {
                     resetButtons();
+                    document.getElementById('game-status').textContent = 'AGENT PLAYING'
                     button.classList.add('human-choice');
                     humanPlayState = Array(NUM_ACTIONS).fill('0');
                     humanPlayState[index] = '1';
@@ -240,16 +259,28 @@
                     // Computer choices
                     const firstAction = getAction(humanPlayState.join(''), false);
                     const firstButton = document.getElementById(`button-${firstAction}`);
-                    firstButton.classList.add(humanPlayState.join('')[parseInt(firstAction)] == '0' ? 'computer-choice' : 'wrong-choice');
+                    let agentLoses = humanPlayState.join('')[parseInt(firstAction)] == '1';
+                    firstButton.classList.add(agentLoses ? 'wrong-choice' : 'computer-choice');
+                    if (agentLoses) {
+                        document.getElementById('game-status').textContent = 'AGENT LOSES'
+                    }
                     await delay(500);
 
                     const nextState = [...humanPlayState];
                     nextState[firstAction] = '1';
                     const secondAction = getAction(nextState.join(''), false);
                     const secondButton = document.getElementById(`button-${secondAction}`);
-                    secondButton.classList.add(nextState.join('')[parseInt(secondAction)] == '0' ? 'computer-choice' : 'wrong-choice');
-                    await delay(1000);
+                    agentLoses = agentLoses || nextState.join('')[parseInt(secondAction)] == '1';
+                    secondButton.classList.add(agentLoses ? 'wrong-choice' : 'computer-choice');
 
+                    if (agentLoses) {
+                        document.getElementById('game-status').textContent = 'AGENT LOSES';
+                    } else{
+                        document.getElementById('game-status').textContent = 'AGENT WINS';
+                    }
+                    await delay(1000);
+                    
+                    document.getElementById('game-status').textContent = 'Awaiting player input';
                     resetButtons();
                 };
             });
@@ -259,17 +290,61 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        
+        function setupTrainButton() {
+            const trainButton = document.getElementById('train-button');
+            const numGamesInput = document.getElementById('num-games');
 
-        // Train
+            trainButton.addEventListener('click', () => {
+                console.log('train clicked');
+                const numGames = parseInt(numGamesInput.value, 10) || 100;
+                train(numGames);
+                visualizeQSpace();
+            });
+        }
+
+        async function ready(fn) {
+            await delay(100);
+            if (document.readyState !== 'loading') {
+                // Train Button
+                const trainButton = document.getElementById('train-button');
+                const numGamesInput = document.getElementById('num-games');
+                trainButton.addEventListener('click', () => {
+                    const numGames = parseInt(numGamesInput.value);
+                    train(numGames);
+                });
+
+                // Sliders
+                const alphaSlider = document.getElementById('alpha-slider');
+                const gammaSlider = document.getElementById('gamma-slider');
+                const epsilonSlider = document.getElementById('epsilon-slider');
+
+                const alphaValue = document.getElementById('alpha-value');
+                const gammaValue = document.getElementById('gamma-value');
+                const epsilonValue = document.getElementById('epsilon-value');
+
+                alphaSlider.addEventListener('input', () => {
+                    alphaValue.textContent = alphaSlider.value;
+                    alpha = parseFloat(alphaSlider.value); // Update alpha globally
+                });
+
+                gammaSlider.addEventListener('input', () => {
+                    gammaValue.textContent = gammaSlider.value;
+                    gamma = parseFloat(gammaSlider.value); // Update gamma globally
+                });
+
+                epsilonSlider.addEventListener('input', () => {
+                    epsilonValue.textContent = epsilonSlider.value;
+                    epsilon = parseFloat(epsilonSlider.value); // Update epsilon globally
+                });
+            } else {
+                document.addEventListener('DOMContentLoaded', fn);
+            }
+        }
+
+        ready();
+
         initializeButtons();
         visualizeQSpace();
-        train(1000);
-
-        // Test
-        epsilon = 0.00;
-        document.getElementById('stats').innerHTML += `<br>DONE TRAINING - SETTING EPSILON TO ZERO<br><br>`;
-        train(100);
 
         handleHumanPlay();
     </script>
