@@ -50,6 +50,15 @@
         .filled {
             background-color: #666;
         }
+        .human-choice {
+            background-color: blue !important;
+        }
+        .computer-choice {
+            background-color: orange !important;
+        }
+        .wrong-choice {
+            background-color: red !important;
+        }
     </style>
 </head>
 <body>
@@ -97,6 +106,9 @@
         [...INITIAL_STATES, ...INTERMEDIATE_STATES].forEach(state => {
             qTable[state] = new Array(NUM_ACTIONS).fill(0);
         });
+
+        let humanPlayState = Array(NUM_ACTIONS).fill('0').join('');
+        let humanButtons = document.querySelectorAll('.game-button');
 
         function getAction(state, explore = true) {
             if (explore && Math.random() < epsilon) {
@@ -208,15 +220,58 @@
             }
         }
 
+        function resetButtons() {
+            const buttons = document.querySelectorAll('.game-button');
+            buttons.forEach(button => {
+                button.className = 'game-button';
+            });
+        }
+
+        function handleHumanPlay() {
+            const buttons = document.querySelectorAll('.game-button');
+            buttons.forEach((button, index) => {
+                button.onclick = async () => {
+                    resetButtons();
+                    button.classList.add('human-choice');
+                    humanPlayState = Array(NUM_ACTIONS).fill('0');
+                    humanPlayState[index] = '1';
+                    await delay(500);
+
+                    // Computer choices
+                    const firstAction = getAction(humanPlayState.join(''), false);
+                    const firstButton = document.getElementById(`button-${firstAction}`);
+                    firstButton.classList.add(humanPlayState.join('')[parseInt(firstAction)] == '0' ? 'computer-choice' : 'wrong-choice');
+                    await delay(500);
+
+                    const nextState = [...humanPlayState];
+                    nextState[firstAction] = '1';
+                    const secondAction = getAction(nextState.join(''), false);
+                    const secondButton = document.getElementById(`button-${secondAction}`);
+                    secondButton.classList.add(nextState.join('')[parseInt(secondAction)] == '0' ? 'computer-choice' : 'wrong-choice');
+                    await delay(1000);
+
+                    resetButtons();
+                };
+            });
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        
+
         // Train
         initializeButtons();
         visualizeQSpace();
-        train(100);
+        train(1000);
 
         // Test
         epsilon = 0.00;
         document.getElementById('stats').innerHTML += `<br>DONE TRAINING - SETTING EPSILON TO ZERO<br><br>`;
         train(100);
+
+        handleHumanPlay();
     </script>
 </body>
 </html>
