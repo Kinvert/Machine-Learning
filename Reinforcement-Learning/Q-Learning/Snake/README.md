@@ -4,4 +4,4 @@ To keep the Q-Space reasonable this was limited to a 4X4 grid. Given the number 
 
 [Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html)
 
-<img alt="Q-Space" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Reinforcement-Learning/Q-Learning/Snake/snake-game-1-learning.png" />
+<img alt="Q-Space" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Reinforcement-Learning/Q-Learning/Snake/snake-game-q-learning.png" />
