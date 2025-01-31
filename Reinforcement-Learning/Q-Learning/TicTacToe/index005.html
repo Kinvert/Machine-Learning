@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tic Tac Toe Q-Learning</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #1a1a1a;
+            color: white;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            justify-content: center;
+            margin: 20px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #333;
+            cursor: pointer;
+            font-size: 48px;
+            background: #2a2a2a;
+            transition: background 0.3s;
+        }
+        .cell:hover {
+            background: #3a3a3a;
+        }
+        .cell.taken {
+            pointer-events: none;
+        }
+        #controls {
+            margin: 20px;
+        }
+        #stats {
+            font-family: monospace;
+            margin: 10px;
+        }
+        #debug {
+            font-family: monospace;
+            white-space: pre;
+            margin: 10px;
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .training-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+            gap: 10px;
+        }
+        button {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div>AGENT 1</div>
+        <div class="slider-container">
+            <label for="epsilon">Epsilon:</label>
+            <input type="range" id="epsilon-slider1" min="0" max="1" step="0.01" value="0.1">
+            <span id="epsilon-value1">0.10</span>
+        </div>
+        <div class="slider-container">
+            <label for="gamma">Gamma:</label>
+            <input type="range" id="gamma-slider1" min="0" max="1" step="0.01" value="0.90">
+            <span id="gamma-value1">0.90</span>
+        </div>
+        <div class="slider-container">
+            <label for="alpha">Alpha:</label>
+            <input type="range" id="alpha-slider1" min="0" max="1" step="0.01" value="0.25">
+            <span id="alpha-value1">0.25</span>
+        </div>
+        <div class="training-controls">
+            <input type="number" id="train-games" min="1" max="10000" value="101">
+            <button id="train-button">Train</button>
+        </div>
+
+        <div>AGENT 2</div>
+        <div class="slider-container">
+            <label for="epsilon">Epsilon:</label>
+            <input type="range" id="epsilon-slider2" min="0" max="1" step="0.01" value="0.1">
+            <span id="epsilon-value2">0.10</span>
+        </div>
+        <div class="slider-container">
+            <label for="gamma">Gamma:</label>
+            <input type="range" id="gamma-slider2" min="0" max="1" step="0.01" value="0.90">
+            <span id="gamma-value2">0.90</span>
+        </div>
+        <div class="slider-container">
+            <label for="alpha">Alpha:</label>
+            <input type="range" id="alpha-slider2" min="0" max="1" step="0.01" value="0.25">
+            <span id="alpha-value2">0.25</span>
+        </div>
+    </div>
+    <div id="status">Your Turn</div>
+    <div class="board" id="board"></div>
+    <div id="stats">Episodes: 0 | Wins: 0 | Draws: 0 | Losses: 0</div>
+    <div id="debug"></div>
+
+    <script src="main005.js"></script>
+</body>
+</html>
