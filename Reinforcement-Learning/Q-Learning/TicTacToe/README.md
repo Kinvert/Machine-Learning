@@ -1,6 +1,6 @@
 # Q-Learning Tic Tac Toe
 
-[:video game: Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html)
+[:video_game: Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html)
 
 This is an interactive game of Tic Tac Toe.
 

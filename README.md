@@ -6,6 +6,12 @@ A collection of small Machine Learning projects and examples.
 
 CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
 
+## Interactive Demos and Games
+
+- [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
+- [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
+- [:video_game: TicTacToe - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/TicTacToe)
+
 ## Table of Contents
 
 - [Algorithms](https://github.com/Kinvert/Machine-Learning/tree/master/Algorithms)
