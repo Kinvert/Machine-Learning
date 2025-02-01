@@ -44,11 +44,11 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
   - Mostly moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
 - [JavaScript](https://github.com/Kinvert/Machine-Learning/search?l=JavaScript)
   - Vanilla
+    - [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
+    - [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
     - [:video_game: TicTacToe - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/TicTacToe)
   - TensorFlow JS
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
-    - [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
-    - [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
 - [Matlab/Octave](https://github.com/Kinvert/Machine-Learning/search?l=MATLAB)
   - [![Youtube Link][logo]](https://youtu.be/6tUtbAbLr84) &nbsp; [MNIST Matlab-Octave](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/Matlab-Octave)
 - Python / [Jupyter Notebook](https://github.com/Kinvert/Machine-Learning/search?l=Jupyter+Notebook)
