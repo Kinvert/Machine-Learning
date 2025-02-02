@@ -2,18 +2,18 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Night-Mode Target Game (Inverted Y-Axis, Higher Sensitivity, Faster Target)</title>
+  <title>Night-Mode Target Game with Single-Press Shots (Up to 20 Shots)</title>
   <style>
     html, body {
-      margin: 0; 
-      padding: 0; 
-      background: #000; 
-      color: #fff; 
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
       font-family: sans-serif;
       overflow: hidden; /* Hide scrollbars */
     }
     #gameCanvas {
-      background: #000; /* Night mode background */
+      background: #000;
       display: block;
       margin: 0 auto;
       border: 2px solid #444;
@@ -26,132 +26,299 @@
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="info">
-    <p>Use the left joystick to move the crosshairs (Y-axis inverted). Press the main button (often "A") to shoot.</p>
-    <p>Score: <span id="scoreDisplay">0</span></p>
-  </div>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="info">
+  <p>
+    Use the left joystick to move the crosshairs (Y-axis inverted).
+    Press the bottom button (often "B") for a single shot. The game ends after 20 shots.
+  </p>
+  <p>Score: <span id="scoreDisplay">0</span></p>
+  <p>MSE: <span id="mseDisplay">0</span></p>
+  <p>Average Time per Shot (s): <span id="avgTimeDisplay">0</span></p>
+  <p>Average Score per Shot: <span id="avgScoreDisplay">0</span></p>
+  <p>Press Enter to restart after the match ends.</p>
+</div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreDisplay = document.getElementById('scoreDisplay');
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
 
-    let crosshairX = canvas.width / 2;
-    let crosshairY = canvas.height / 2;
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const mseDisplay = document.getElementById('mseDisplay');
+  const avgTimeDisplay = document.getElementById('avgTimeDisplay');
+  const avgScoreDisplay = document.getElementById('avgScoreDisplay');
 
-    // Target properties with a faster initial speed
-    let targetX = Math.random() * canvas.width;
-    let targetY = Math.random() * canvas.height;
-    const targetRadius = 20;
-    let targetSpeed = 2; // Increased from 1 to start faster
+  let crosshairX, crosshairY;
+  let targetX, targetY;
+  let targetVelX, targetVelY;
+  const targetRadius = 20;
 
-    let score = 0;
+  let score, totalShots, matchOver;
+  let lastShotValue = 0;
+  let shots = []; // Collect shot data for MSE
 
-    // Check for gamepad connections
-    window.addEventListener("gamepadconnected", (event) => {
-      console.log("Gamepad connected:", event.gamepad);
-    });
-    window.addEventListener("gamepaddisconnected", (event) => {
-      console.log("Gamepad disconnected:", event.gamepad);
-    });
+  // Set to 20 so the game ends after 20 shots
+  const maxShots = 20;
 
-    function updateGamepadData() {
-      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-      if (!gamepads) return;
+  // For single-press detection on the "B" button
+  let lastBButtonPressed = false;
 
-      const gp = gamepads[0];
-      if (!gp) return;
+  // Timing
+  let gameStartTime;
 
-      // Left stick inputs typically at gp.axes[0] (x), gp.axes[1] (y)
-      const moveX = gp.axes[0];
-      const moveY = gp.axes[1];
+  // Initialize or reset the game variables
+  function initializeGame() {
+    crosshairX = canvas.width / 2;
+    crosshairY = canvas.height / 2;
 
-      // Increase joystick sensitivity and invert Y-axis
-      const speedFactor = 8; // Higher sensitivity
-      crosshairX += moveX * speedFactor;
-      crosshairY -= moveY * speedFactor; // Inverted Y
+    // Random start for target
+    targetX = Math.random() * canvas.width;
+    targetY = Math.random() * canvas.height;
+    // Bouncing velocity
+    targetVelX = 3;
+    targetVelY = 2;
 
-      // Clamp crosshair position within the canvas
-      if (crosshairX < 0) crosshairX = 0;
-      if (crosshairX > canvas.width) crosshairX = canvas.width;
-      if (crosshairY < 0) crosshairY = 0;
-      if (crosshairY > canvas.height) crosshairY = canvas.height;
+    score = 0;
+    totalShots = 0;
+    matchOver = false;
+    shots = [];
 
-      // "A" button is often gp.buttons[0]
-      if (gp.buttons[0].pressed) {
-        // Collision detection
-        const dx = crosshairX - targetX;
-        const dy = crosshairY - targetY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    scoreDisplay.textContent = score.toString();
+    mseDisplay.textContent = "0";
+    avgTimeDisplay.textContent = "0";
+    avgScoreDisplay.textContent = "0";
 
-        if (distance <= targetRadius) {
-          // Hit!
-          score++;
-          scoreDisplay.textContent = score;
-          // Move target to a new random position
-          targetX = Math.random() * canvas.width;
-          targetY = Math.random() * canvas.height;
-          // Increase target speed further upon each hit
-          targetSpeed += 0.3;
-        }
-      }
+    gameStartTime = Date.now();
+  }
+
+  // Listen for gamepad connections
+  window.addEventListener("gamepadconnected", (e) => {
+    console.log("Gamepad connected:", e.gamepad);
+  });
+  window.addEventListener("gamepaddisconnected", (e) => {
+    console.log("Gamepad disconnected:", e.gamepad);
+  });
+
+  // Listen for keyboard input to restart
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && matchOver) {
+      initializeGame();
+    }
+  });
+
+  let lastStartPressed = false;
+
+  function updateGamepadData() {
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) return;
+
+    const gp = gamepads[0];
+    if (!gp) return;
+
+
+    const startPressed = gp.buttons[11].pressed;
+    if (matchOver && startPressed && !lastStartPressed) {
+        initializeGame(); // Restart the game
+    }
+    lastStartPressed = startPressed;
+
+    if (matchOver) return;
+
+    // Movement
+    const moveX = gp.axes[0];
+    const moveY = gp.axes[1];
+    const speedFactor = 8; // Inversion for Y
+    crosshairX += moveX * speedFactor;
+    crosshairY -= moveY * speedFactor;
+
+    // Clamp the crosshair
+    crosshairX = Math.max(0, Math.min(canvas.width, crosshairX));
+    crosshairY = Math.max(0, Math.min(canvas.height, crosshairY));
+
+    // B button is often index 1
+    const bButtonPressed = gp.buttons[1].pressed;
+    // Single press
+    if (bButtonPressed && !lastBButtonPressed) {
+      handleShot();
+    }
+    lastBButtonPressed = bButtonPressed;
+  }
+
+  function handleShot() {
+    if (matchOver) return;
+
+    totalShots++;
+    if (totalShots >= maxShots) {
+      // If this was the 20th shot or more, do the shot logic then end
+      registerShot();
+      endMatch();
+      return;
     }
 
-    function updateTargetPosition() {
-      // Make it move in random directions each frame
-      targetX += (Math.random() - 0.5) * targetSpeed * 1.5;
-      targetY += (Math.random() - 0.5) * targetSpeed * 1.5;
+    // Otherwise, register the shot normally
+    registerShot();
+  }
 
-      // Keep target within the bounds of the canvas
-      if (targetX < targetRadius) targetX = targetRadius;
-      if (targetX > canvas.width - targetRadius) targetX = canvas.width - targetRadius;
-      if (targetY < targetRadius) targetY = targetRadius;
-      if (targetY > canvas.height - targetRadius) targetY = canvas.height - targetRadius;
+  function registerShot() {
+    const dx = crosshairX - targetX;
+    const dy = crosshairY - targetY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    shots.push({ dx, dy, distSquared: dist*dist });
+
+    // Rings for scoring
+    let shotPoints = 0;
+    if (dist <= 7) {
+      shotPoints = 100;
+    } else if (dist <= 14) {
+      shotPoints = 60;
+    } else if (dist <= 20) {
+      shotPoints = 30;
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    lastShotValue = shotPoints;
+    score += shotPoints;
+    scoreDisplay.textContent = score.toString();
+  }
 
-      // Draw the moving target
+  function endMatch() {
+    matchOver = true;
+    calculateStats();
+  }
+
+  function calculateStats() {
+    // MSE
+    let sumDistSquared = 0;
+    shots.forEach(s => { sumDistSquared += s.distSquared; });
+    const mse = totalShots > 0 ? sumDistSquared / totalShots : 0;
+    mseDisplay.textContent = mse.toFixed(2);
+
+    // Average time per shot
+    const totalTimeSeconds = (Date.now() - gameStartTime) / 1000;
+    const avgTime = totalShots > 0 ? totalTimeSeconds / totalShots : 0;
+    avgTimeDisplay.textContent = avgTime.toFixed(2);
+
+    // Average score per shot
+    const avgScore = totalShots > 0 ? score / totalShots : 0;
+    avgScoreDisplay.textContent = avgScore.toFixed(2);
+  }
+
+  // Update target position with bouncing
+  function updateTargetPosition() {
+    if (matchOver) return;
+
+    targetX += targetVelX;
+    targetY += targetVelY;
+
+    // Bounce off edges
+    if (targetX < targetRadius) {
+      targetX = targetRadius;
+      targetVelX *= -1;
+    }
+    if (targetX > canvas.width - targetRadius) {
+      targetX = canvas.width - targetRadius;
+      targetVelX *= -1;
+    }
+    if (targetY < targetRadius) {
+      targetY = targetRadius;
+      targetVelY *= -1;
+    }
+    if (targetY > canvas.height - targetRadius) {
+      targetY = canvas.height - targetRadius;
+      targetVelY *= -1;
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!matchOver) {
+      // Bouncing target
       ctx.beginPath();
-      ctx.arc(targetX, targetY, targetRadius, 0, Math.PI * 2);
+      ctx.arc(targetX, targetY, 20, 0, Math.PI * 2);
       ctx.fillStyle = "red";
       ctx.fill();
       ctx.closePath();
 
-      // Draw crosshairs
       ctx.beginPath();
-      // Outer circle
+      ctx.arc(targetX, targetY, 14, 0, Math.PI * 2);
+      ctx.strokeStyle = "orange";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 7, 0, Math.PI * 2);
+      ctx.strokeStyle = "yellow";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      // Crosshairs
+      ctx.beginPath();
       ctx.arc(crosshairX, crosshairY, 15, 0, Math.PI * 2);
       ctx.strokeStyle = "lightgreen";
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.closePath();
 
-      // Cross lines
       ctx.beginPath();
-      // Horizontal
       ctx.moveTo(crosshairX - 20, crosshairY);
       ctx.lineTo(crosshairX + 20, crosshairY);
-      // Vertical
       ctx.moveTo(crosshairX, crosshairY - 20);
       ctx.lineTo(crosshairX, crosshairY + 20);
       ctx.strokeStyle = "lightgreen";
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.closePath();
-    }
 
-    function gameLoop() {
-      updateGamepadData();
-      updateTargetPosition();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
+      ctx.fillStyle = "#FFF";
+      ctx.font = "20px sans-serif";
+      ctx.fillText(`Last Shot: +${lastShotValue}`, 10, 20);
+    } else {
+      // Game Over Screen
+      ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Start the game loop
-    gameLoop();
-  </script>
+      ctx.fillStyle = "#FFF";
+      ctx.font = "24px sans-serif";
+      ctx.fillText("Match Over!", canvas.width / 2 - 60, 50);
+      ctx.fillText(`Final Score: ${score}`, canvas.width / 2 - 60, 90);
+      ctx.fillText(`Total Shots: ${totalShots}`, canvas.width / 2 - 60, 130);
+      ctx.fillText(`MSE: ${mseDisplay.textContent}`, canvas.width / 2 - 60, 170);
+      ctx.fillText(`Avg Time/Shot (s): ${avgTimeDisplay.textContent}`, canvas.width / 2 - 60, 210);
+      ctx.fillText(`Avg Score/Shot: ${avgScoreDisplay.textContent}`, canvas.width / 2 - 60, 250);
+      ctx.fillText("Press Enter to Start a New Match", canvas.width / 2 - 140, 290);
+
+      // Show shot distribution
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2 + 70;
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+      ctx.strokeStyle = "white";
+      ctx.stroke();
+      ctx.closePath();
+
+      shots.forEach((shot) => {
+        ctx.beginPath();
+        ctx.arc(centerX + shot.dx, centerY + shot.dy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
+      });
+    }
+  }
+
+  function gameLoop() {
+    updateGamepadData();
+    updateTargetPosition();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  initializeGame();
+  gameLoop();
+</script>
 </body>
 </html>
