@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Night-Mode Target Game (Inverted Y-Axis, Higher Sensitivity, Faster Target)</title>
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      background: #000; 
+      color: #fff; 
+      font-family: sans-serif;
+      overflow: hidden; /* Hide scrollbars */
+    }
+    #gameCanvas {
+      background: #000; /* Night mode background */
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #444;
+      cursor: none; /* Hide normal mouse cursor if you prefer */
+    }
+    #info {
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="info">
+    <p>Use the left joystick to move the crosshairs (Y-axis inverted). Press the main button (often "A") to shoot.</p>
+    <p>Score: <span id="scoreDisplay">0</span></p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+
+    let crosshairX = canvas.width / 2;
+    let crosshairY = canvas.height / 2;
+
+    // Target properties with a faster initial speed
+    let targetX = Math.random() * canvas.width;
+    let targetY = Math.random() * canvas.height;
+    const targetRadius = 20;
+    let targetSpeed = 2; // Increased from 1 to start faster
+
+    let score = 0;
+
+    // Check for gamepad connections
+    window.addEventListener("gamepadconnected", (event) => {
+      console.log("Gamepad connected:", event.gamepad);
+    });
+    window.addEventListener("gamepaddisconnected", (event) => {
+      console.log("Gamepad disconnected:", event.gamepad);
+    });
+
+    function updateGamepadData() {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      if (!gamepads) return;
+
+      const gp = gamepads[0];
+      if (!gp) return;
+
+      // Left stick inputs typically at gp.axes[0] (x), gp.axes[1] (y)
+      const moveX = gp.axes[0];
+      const moveY = gp.axes[1];
+
+      // Increase joystick sensitivity and invert Y-axis
+      const speedFactor = 8; // Higher sensitivity
+      crosshairX += moveX * speedFactor;
+      crosshairY -= moveY * speedFactor; // Inverted Y
+
+      // Clamp crosshair position within the canvas
+      if (crosshairX < 0) crosshairX = 0;
+      if (crosshairX > canvas.width) crosshairX = canvas.width;
+      if (crosshairY < 0) crosshairY = 0;
+      if (crosshairY > canvas.height) crosshairY = canvas.height;
+
+      // "A" button is often gp.buttons[0]
+      if (gp.buttons[0].pressed) {
+        // Collision detection
+        const dx = crosshairX - targetX;
+        const dy = crosshairY - targetY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance <= targetRadius) {
+          // Hit!
+          score++;
+          scoreDisplay.textContent = score;
+          // Move target to a new random position
+          targetX = Math.random() * canvas.width;
+          targetY = Math.random() * canvas.height;
+          // Increase target speed further upon each hit
+          targetSpeed += 0.3;
+        }
+      }
+    }
+
+    function updateTargetPosition() {
+      // Make it move in random directions each frame
+      targetX += (Math.random() - 0.5) * targetSpeed * 1.5;
+      targetY += (Math.random() - 0.5) * targetSpeed * 1.5;
+
+      // Keep target within the bounds of the canvas
+      if (targetX < targetRadius) targetX = targetRadius;
+      if (targetX > canvas.width - targetRadius) targetX = canvas.width - targetRadius;
+      if (targetY < targetRadius) targetY = targetRadius;
+      if (targetY > canvas.height - targetRadius) targetY = canvas.height - targetRadius;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the moving target
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, targetRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.closePath();
+
+      // Draw crosshairs
+      ctx.beginPath();
+      // Outer circle
+      ctx.arc(crosshairX, crosshairY, 15, 0, Math.PI * 2);
+      ctx.strokeStyle = "lightgreen";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      // Cross lines
+      ctx.beginPath();
+      // Horizontal
+      ctx.moveTo(crosshairX - 20, crosshairY);
+      ctx.lineTo(crosshairX + 20, crosshairY);
+      // Vertical
+      ctx.moveTo(crosshairX, crosshairY - 20);
+      ctx.lineTo(crosshairX, crosshairY + 20);
+      ctx.strokeStyle = "lightgreen";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    function gameLoop() {
+      updateGamepadData();
+      updateTargetPosition();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start the game loop
+    gameLoop();
+  </script>
+</body>
+</html>
