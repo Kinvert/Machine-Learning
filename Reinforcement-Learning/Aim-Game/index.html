@@ -17,11 +17,15 @@
       display: block;
       margin: 0 auto;
       border: 2px solid #444;
-      cursor: none; /* Hide normal mouse cursor if you prefer */
+      cursor: none;
     }
     #info {
       text-align: center;
       margin-top: 10px;
+    }
+    #info p {
+      font-size: 14px;
+      margin: 4px 0;
     }
   </style>
 </head>
@@ -33,20 +37,25 @@
     Press the bottom button (often "B") for a single shot. The game ends after 20 shots.
   </p>
   <p>Score: <span id="scoreDisplay">0</span></p>
+  <p>Top Score (This Session): <span id="topScoreDisplay">0</span></p>
   <p>MSE: <span id="mseDisplay">0</span></p>
   <p>Average Time per Shot (s): <span id="avgTimeDisplay">0</span></p>
   <p>Average Score per Shot: <span id="avgScoreDisplay">0</span></p>
-  <p>Press Enter to restart after the match ends.</p>
+  <p>Average Points per Second: <span id="avgPtsPerSecDisplay">0</span></p>
+  <p>Press Enter to restart after the match ends. Press "Start" to restart on the controller.</p>
 </div>
 
 <script>
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
+  // DOM elements for displaying stats
   const scoreDisplay = document.getElementById('scoreDisplay');
+  const topScoreDisplay = document.getElementById('topScoreDisplay');
   const mseDisplay = document.getElementById('mseDisplay');
   const avgTimeDisplay = document.getElementById('avgTimeDisplay');
   const avgScoreDisplay = document.getElementById('avgScoreDisplay');
+  const avgPtsPerSecDisplay = document.getElementById('avgPtsPerSecDisplay');
 
   let crosshairX, crosshairY;
   let targetX, targetY;
@@ -55,26 +64,27 @@
 
   let score, totalShots, matchOver;
   let lastShotValue = 0;
-  let shots = []; // Collect shot data for MSE
-
-  // Set to 20 so the game ends after 20 shots
+  let shots = [];
+  let topScore = 0;
   const maxShots = 20;
-
-  // For single-press detection on the "B" button
   let lastBButtonPressed = false;
+  let lastStartPressed = false;
 
-  // Timing
-  let gameStartTime;
+  let gameStartTime = 0;
 
-  // Initialize or reset the game variables
+  function getTargetBobbingOffset(timeInSeconds) {
+    const frequency = 0 * Math.PI; 
+    const amplitude = 0;
+    return amplitude * Math.sin(frequency * timeInSeconds);
+  }
+
   function initializeGame() {
     crosshairX = canvas.width / 2;
     crosshairY = canvas.height / 2;
 
-    // Random start for target
     targetX = Math.random() * canvas.width;
     targetY = Math.random() * canvas.height;
-    // Bouncing velocity
+
     targetVelX = 3;
     targetVelY = 2;
 
@@ -87,26 +97,26 @@
     mseDisplay.textContent = "0";
     avgTimeDisplay.textContent = "0";
     avgScoreDisplay.textContent = "0";
+    avgPtsPerSecDisplay.textContent = "0";
+
+    topScoreDisplay.textContent = topScore.toString();
 
     gameStartTime = Date.now();
   }
 
-  // Listen for gamepad connections
   window.addEventListener("gamepadconnected", (e) => {
     console.log("Gamepad connected:", e.gamepad);
   });
+
   window.addEventListener("gamepaddisconnected", (e) => {
     console.log("Gamepad disconnected:", e.gamepad);
   });
 
-  // Listen for keyboard input to restart
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && matchOver) {
       initializeGame();
     }
   });
-
-  let lastStartPressed = false;
 
   function updateGamepadData() {
     const gamepads = navigator.getGamepads();
@@ -115,29 +125,24 @@
     const gp = gamepads[0];
     if (!gp) return;
 
-
-    const startPressed = gp.buttons[11].pressed;
+    const startPressed = gp.buttons[9]?.pressed || gp.buttons[11]?.pressed;
     if (matchOver && startPressed && !lastStartPressed) {
-        initializeGame(); // Restart the game
+      initializeGame();
     }
-    lastStartPressed = startPressed;
+    lastStartPressed = !!startPressed;
 
     if (matchOver) return;
 
-    // Movement
     const moveX = gp.axes[0];
     const moveY = gp.axes[1];
     const speedFactor = 8; // Inversion for Y
     crosshairX += moveX * speedFactor;
     crosshairY -= moveY * speedFactor;
 
-    // Clamp the crosshair
     crosshairX = Math.max(0, Math.min(canvas.width, crosshairX));
     crosshairY = Math.max(0, Math.min(canvas.height, crosshairY));
 
-    // B button is often index 1
     const bButtonPressed = gp.buttons[1].pressed;
-    // Single press
     if (bButtonPressed && !lastBButtonPressed) {
       handleShot();
     }
@@ -149,24 +154,18 @@
 
     totalShots++;
     if (totalShots >= maxShots) {
-      // If this was the 20th shot or more, do the shot logic then end
       registerShot();
       endMatch();
       return;
     }
-
-    // Otherwise, register the shot normally
     registerShot();
   }
 
   function registerShot() {
     const dx = crosshairX - targetX;
     const dy = crosshairY - targetY;
-    const dist = Math.sqrt(dx*dx + dy*dy);
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    shots.push({ dx, dy, distSquared: dist*dist });
-
-    // Rings for scoring
     let shotPoints = 0;
     if (dist <= 7) {
       shotPoints = 100;
@@ -179,31 +178,42 @@
     lastShotValue = shotPoints;
     score += shotPoints;
     scoreDisplay.textContent = score.toString();
+
+    shots.push({
+      dx,
+      dy,
+      distSquared: dist * dist,
+      points: shotPoints
+    });
   }
 
   function endMatch() {
     matchOver = true;
     calculateStats();
+
+    if (score > topScore) {
+      topScore = score;
+      topScoreDisplay.textContent = topScore.toString();
+    }
   }
 
   function calculateStats() {
-    // MSE
     let sumDistSquared = 0;
     shots.forEach(s => { sumDistSquared += s.distSquared; });
     const mse = totalShots > 0 ? sumDistSquared / totalShots : 0;
     mseDisplay.textContent = mse.toFixed(2);
 
-    // Average time per shot
     const totalTimeSeconds = (Date.now() - gameStartTime) / 1000;
     const avgTime = totalShots > 0 ? totalTimeSeconds / totalShots : 0;
     avgTimeDisplay.textContent = avgTime.toFixed(2);
 
-    // Average score per shot
     const avgScore = totalShots > 0 ? score / totalShots : 0;
     avgScoreDisplay.textContent = avgScore.toFixed(2);
+
+    const avgPtsPerSec = totalTimeSeconds > 0 ? (score / totalTimeSeconds) : 0;
+    avgPtsPerSecDisplay.textContent = avgPtsPerSec.toFixed(2);
   }
 
-  // Update target position with bouncing
   function updateTargetPosition() {
     if (matchOver) return;
 
@@ -232,23 +242,28 @@
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const timeInSeconds = (Date.now() - gameStartTime) / 1000;
+    const bobbingOffset = getTargetBobbingOffset(timeInSeconds);
+
     if (!matchOver) {
-      // Bouncing target
+      const currentY = targetY + bobbingOffset;
+
+      // Draw the rings
       ctx.beginPath();
-      ctx.arc(targetX, targetY, 20, 0, Math.PI * 2);
+      ctx.arc(targetX, currentY, 20, 0, Math.PI * 2);
       ctx.fillStyle = "red";
       ctx.fill();
       ctx.closePath();
 
       ctx.beginPath();
-      ctx.arc(targetX, targetY, 14, 0, Math.PI * 2);
+      ctx.arc(targetX, currentY, 14, 0, Math.PI * 2);
       ctx.strokeStyle = "orange";
       ctx.lineWidth = 3;
       ctx.stroke();
       ctx.closePath();
 
       ctx.beginPath();
-      ctx.arc(targetX, targetY, 7, 0, Math.PI * 2);
+      ctx.arc(targetX, currentY, 7, 0, Math.PI * 2);
       ctx.strokeStyle = "yellow";
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -272,9 +287,11 @@
       ctx.stroke();
       ctx.closePath();
 
+      // Display last shot value at top-left
       ctx.fillStyle = "#FFF";
-      ctx.font = "20px sans-serif";
+      ctx.font = "16px sans-serif";
       ctx.fillText(`Last Shot: +${lastShotValue}`, 10, 20);
+
     } else {
       // Game Over Screen
       ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
@@ -288,12 +305,14 @@
       ctx.fillText(`MSE: ${mseDisplay.textContent}`, canvas.width / 2 - 60, 170);
       ctx.fillText(`Avg Time/Shot (s): ${avgTimeDisplay.textContent}`, canvas.width / 2 - 60, 210);
       ctx.fillText(`Avg Score/Shot: ${avgScoreDisplay.textContent}`, canvas.width / 2 - 60, 250);
-      ctx.fillText("Press Enter to Start a New Match", canvas.width / 2 - 140, 290);
+      ctx.fillText(`Avg Points/s: ${avgPtsPerSecDisplay.textContent}`, canvas.width / 2 - 60, 290);
+      ctx.fillText("Press Enter to Start a New Match", canvas.width / 2 - 140, 330);
 
       // Show shot distribution
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2 + 70;
 
+      // Reference circle
       ctx.beginPath();
       ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
       ctx.strokeStyle = "white";
@@ -303,7 +322,17 @@
       shots.forEach((shot) => {
         ctx.beginPath();
         ctx.arc(centerX + shot.dx, centerY + shot.dy, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "red";
+
+        // Color by shot.points
+        if (shot.points === 100) {
+          ctx.fillStyle = "lime";
+        } else if (shot.points === 60) {
+          ctx.fillStyle = "yellow";
+        } else if (shot.points === 30) {
+          ctx.fillStyle = "orange";
+        } else {
+          ctx.fillStyle = "red";
+        }
         ctx.fill();
         ctx.closePath();
       });
