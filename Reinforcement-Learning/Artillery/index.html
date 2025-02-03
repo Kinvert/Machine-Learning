@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Artillery RL Game</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #333;
+            color: #fff;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background: #333;
+            border: 2px solid #444;
+        }
+
+        #info {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #qSpaceContainer {
+            margin: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .qTableState {
+            border: 1px solid #aaa;
+            margin: 5px;
+        }
+
+        .qTableState h3 {
+            margin: 0;
+            padding: 4px;
+            background: #444;
+            font-size: 14px;
+        }
+
+        .qTableWrapper {
+            display: grid;
+            grid-gap: 1px;
+            background: #444;
+        }
+
+        .qTableWrapper table {
+            border-collapse: collapse;
+        }
+
+        .qTableWrapper th,
+        .qTableWrapper td {
+            text-align: center;
+            padding: 4px;
+            border: 1px solid #666;
+            background: #222;
+            color: #fff;
+            min-width: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="480"></canvas>
+
+    <!-- Optional space to draw Q Values -->
+    <div id="qSpaceContainer"></div>
+
+    <script src="main.js"></script>
+
+    <script src="agent.js"></script> <!-- Insert your agent here instead of mine -->
+</body>
+
+</html>
