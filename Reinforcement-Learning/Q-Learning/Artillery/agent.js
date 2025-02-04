@@ -72,10 +72,8 @@
         return QTable.get(key);
     }
 
-    // ========== Action Selection (ε-greedy) ==========
-    function chooseAction(qArray) {
-        if (Math.random() < EPSILON) {
-            const zeroActions = [];
+    function chooseLessExplored(qArray) {
+        const zeroActions = [];
             // Track the best (least negative) action among actions < 0
             let bestNegVal = -10000, bestA = 0, bestV = 0;
 
@@ -98,9 +96,11 @@
             }
 
             // Otherwise pick the least negative
-            return { aIndex: bestA, vIndex: bestV };
-        }
+            //return { aIndex: bestA, vIndex: bestV };
+            return chooseBest(qArray);
+    }
 
+    function chooseBest(qArray) {
         let bestVal = -10000;
         let bestA = 0;
         let bestV = 0;
@@ -114,6 +114,14 @@
             }
         }
         return { aIndex: bestA, vIndex: bestV };
+    }
+
+    // ========== Action Selection (ε-greedy) ==========
+    function chooseAction(qArray) {
+        if (Math.random() < EPSILON) {
+            return chooseLessExplored(qArray);
+        }
+        return chooseBest(qArray);
     }
 
     // ========== Single-step Q-learning Update ==========

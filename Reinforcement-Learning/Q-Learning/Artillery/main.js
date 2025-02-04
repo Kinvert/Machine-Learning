@@ -30,7 +30,13 @@ let DT = 0.02; // Larger is less accurate but faster
 let currentTime = 0;
 const maxFlightTime = 10;
 
-function resetGame() {
+/**
+ * Resets all key variables to their initial values
+ * 
+ * Randomly selects a new (targetX, targetY) from the global arrays window.targetXs, window.targetYs.
+ * Useful in Reinforcement Learning to begin a new episode with a fresh environment state.
+ */
+function resetGame(){
     cannonAngleDeg = 45;
     cannonVelocity = 50;
 
@@ -212,8 +218,7 @@ function drawGame() {
     ctx.fillText(`Velocity: ${cannonVelocity.toFixed(1)}`, 10, 40);
     ctx.fillText(`Projectile X: ${projectileX.toFixed(1)}, Y: ${projectileY.toFixed(1)}`, 10, 60);
     ctx.fillText(`Target X: ${targetX.toFixed(1)}, Y: ${targetY.toFixed(1)}`, 10, 80);
-    ctx.fillText(`Game Over: ${isGameOver}`, 10, 100);
-    ctx.fillText(`Closest Dist: ${closestDist.toFixed(2)}`, 10, 120);
+    ctx.fillText(`Closest Dist: ${closestDist.toFixed(2)}`, 10, 100);
 }
 
 // Optional manual controls

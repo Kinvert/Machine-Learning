@@ -11,6 +11,7 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
 - [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
 - [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
 - [:video_game: TicTacToe - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/TicTacToe)
+- [:video_game: Artillery - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Artillery/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Artillery)
 
 ## Table of Contents
 
@@ -34,6 +35,7 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
     - [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
     - [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
     - [:video_game: TicTacToe - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/TicTacToe)
+    - [:video_game: Artillery - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Artillery/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Artillery)
 
 ## By Language / Library
 
@@ -47,6 +49,7 @@ CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
     - [:video_game: Choose the Opposite - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
     - [:video_game: Snake - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Snake/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Snake)
     - [:video_game: TicTacToe - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/TicTacToe)
+    - [:video_game: Artillery - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Artillery/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Artillery)
   - TensorFlow JS
     - [![Youtube Link][logo]](https://youtu.be/MetDgYqPD1I) &nbsp; [Trying OpenAI's ChatGPT and TFJS](https://github.com/Kinvert/Machine-Learning/tree/master/Basic-Classification/MNIST/TensorFlow-JS)
 - [Matlab/Octave](https://github.com/Kinvert/Machine-Learning/search?l=MATLAB)
