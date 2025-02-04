@@ -4,4 +4,4 @@
 
 You can write your own agent in agent.js.
 
-<img alt="Q-Space" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Reinforcement-Learning/Q-Learning/Artillery/artillery-q-learning.png" />
+<img alt="Q-Space" width="480px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Reinforcement-Learning/Q-Learning/Artillery/artillery-q-learning.png" />
