@@ -106,6 +106,13 @@
     </div>
     <div id="q-space"></div>
     <div id="stats"></div>
+    <script src="agent.js"></script>
+    <script>
+        // After agent.js loads, initialize the agent, then visualize Q Space once.
+        (async () => {
+          await agent.initialize();  // Ensure the model is set up
+        })();
+    </script>
     <script src="main.js"></script>
 </body>
 </html>
