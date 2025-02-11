@@ -187,18 +187,6 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function setupTrainButton() {
-    const trainButton = document.getElementById('train-button');
-    const numGamesInput = document.getElementById('num-games');
-
-    trainButton.addEventListener('click', () => {
-        console.log('train clicked');
-        const numGames = parseInt(numGamesInput.value, 10) || 100;
-        train(numGames);
-        visualizeQSpace();
-    });
-}
-
 async function ready(fn) {
     await delay(100);
     if (document.readyState !== 'loading') {
