@@ -7,6 +7,7 @@ A collection of small Machine Learning projects and examples.
 CUDA stuff has moved to [CUDA-Stuff](https://github.com/Kinvert/CUDA-Stuff)
 
 ## Interactive Demos and Games
+
 - Choose the Opposite
   - [:video_game: Q-Learning - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/Q-Learning/Choose-the-Opposite)
   - [:video_game: DQN - Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/DQN/Choose-the-Opposite/index.html) &nbsp; [Folder](https://github.com/Kinvert/Machine-Learning/tree/master/Reinforcement-Learning/DQN/Choose-the-Opposite)
