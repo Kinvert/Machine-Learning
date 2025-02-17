@@ -1,23 +1,42 @@
 const REWARDS = {
-    MOVE: -0.1,
-    WIN: 10.0,
-    LOSE: -10.0,
-    DRAW: 5
+    MOVE: -0.01, // -0.1
+    WIN: 1.0,    // 10.0
+    LOSE: -1.0,  // 10.0
+    DRAW: 0.1     // 5
 };
 
-let LEARNING_RATE1 = 0.25;
-let DISCOUNT_FACTOR1 = 0.9;
-let EXPLORATION_RATE1 = 0.1;
-let DRAW_REWARD1 = 5.0;
+let LEARNING_RATE1 = 0.05;
+let DISCOUNT_FACTOR1 = 0.95;
+let EXPLORATION_RATE1 = 0.995;
+let DRAW_REWARD1 = 1.0;
 
-let LEARNING_RATE2 = 0.25;
-let DISCOUNT_FACTOR2 = 0.9;
-let EXPLORATION_RATE2 = 0.1;
-let DRAW_REWARD2 = 5.0;
+let LEARNING_RATE2 = 0.05;
+let DISCOUNT_FACTOR2 = 0.95;
+let EXPLORATION_RATE2 = 0.995;
+let DRAW_REWARD2 = 1.0;
 
 let DEBUG = false;
 
 const ACTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+// From Letters to Numbers
+function encodeState(stateStr) {
+    // 'X' -> +1, 'O' -> -1, '-' -> 0
+    const arr = stateStr.split('').map(ch => {
+        if (ch === 'X') return 1.0;
+        if (ch === 'O') return 0.0; // -1
+        return 0.5; // 0
+    });
+    return tf.tensor2d([arr], [1, 9]);
+}
+
+function calculateEpsilonDecay(currentEpisode, totalEpisodes) {
+    const startEpsilon = 0.995;
+    const endEpsilon = 0.2;
+    const decay = Math.exp(Math.log(endEpsilon/startEpsilon) / (totalEpisodes * 0.5));
+    const eps = Math.max(endEpsilon, startEpsilon * Math.pow(decay, currentEpisode));
+    return eps;
+}
 
 class TicTacToeGame {
     constructor() {
@@ -37,15 +56,16 @@ class TicTacToeGame {
     }
 
     printBoard() {
-        if (DEBUG) {console.log(`                        ${this.board.slice(0,3)}`);}
-        if (DEBUG) {console.log(`                        ${this.board.slice(3,6)}`);}
-        if (DEBUG) {console.log(`                        ${this.board.slice(6,9)}`);}
+        if (DEBUG) {
+            console.log(`                        ${this.board.slice(0,3)}`);
+            console.log(`                        ${this.board.slice(3,6)}`);
+            console.log(`                        ${this.board.slice(6,9)}`);
+        }
     }
 
     executeAction(index, playingAgent, waitingAgent) {
         if (this.board[index] !== '-' || this.gameOver) return REWARDS.MOVE;
 
-        // Whichever agent is acting records their state+action in their moveHistory:
         playingAgent.moveHistory.push({
             state: this.board,
             action: index
@@ -62,23 +82,22 @@ class TicTacToeGame {
 
         if (winner === 1) {
             this.gameOver = true;
-            playingAgent.updateHistoricalQValues(REWARDS.WIN); // Agent1
-            waitingAgent.updateHistoricalQValues(REWARDS.LOSE); // Agent2
-            return REWARDS.LOSE; // Agent 2 loses
+            playingAgent.updateHistoricalQValues(REWARDS.WIN);
+            waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
+            return REWARDS.LOSE;
         } else if (winner === -1) {
             this.gameOver = true;
-            playingAgent.updateHistoricalQValues(REWARDS.WIN); // Agent2
-            waitingAgent.updateHistoricalQValues(REWARDS.LOSE); // Agent1
-            return REWARDS.WIN; // Agent 2 wins
+            playingAgent.updateHistoricalQValues(REWARDS.WIN);
+            waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
+            return REWARDS.WIN;
         } else if (winner === 0) {
             this.gameOver = true;
             playingAgent.updateHistoricalQValues(REWARDS.DRAW);
             waitingAgent.updateHistoricalQValues(REWARDS.DRAW);
-            return REWARDS.DRAW; // Agent 2 draw
+            return REWARDS.DRAW;
         }
 
         this.currentPlayer *= -1;
-        
         if (DEBUG) {console.log(`                    this.board = ${this.board}`);}
         return REWARDS.MOVE;
     }
@@ -108,210 +127,6 @@ class TicTacToeGame {
 
         if (this.board.split('').every(cell => cell !== '-')) return 0;
         return null;
-    }
-}
-
-class QLearningAgent {
-    constructor(learningRate, discountFactor, explorationRate, drawReward, number) {
-        this.qTable = new Map();
-        this.moveHistory = [];
-        this.learningRate = learningRate;
-        this.discountFactor = discountFactor;
-        this.explorationRate = explorationRate;
-        this.drawReward = drawReward;
-        this.num = number;
-    }
-
-    printQValues(qValues, print=false) {
-        if (DEBUG && print) {
-            console.log(`                                printQValues`);
-            console.log(`                                "${qValues[0]}"  "${qValues[1]}"  "${qValues[2]}"`);
-            console.log(`                                "${qValues[3]}"  "${qValues[4]}"  "${qValues[5]}"`);
-            console.log(`                                "${qValues[6]}"  "${qValues[7]}"  "${qValues[8]}"`);
-        }
-    }
-
-    clampQValue(value) {
-        const clamped = Math.max(Math.min(value, REWARDS.WIN), REWARDS.LOSE);
-        return parseFloat(clamped.toFixed(3));
-    }
-
-    calculateStateQValues(state) {
-        const qValues = {};
-        ACTIONS.forEach(action => {
-            qValues[action] = this.evaluateMove(state, action);
-        });
-        return qValues;
-    }
-
-    evaluateMove(state, action) {
-        if (state[action] === '-') {
-            return 0;
-        } else {
-            return -10.0;
-        }
-    }
-
-    printState(state, print=false) {
-        if (DEBUG && print) {
-            console.log(`                    printState()`);
-            console.log(`                    ${state.slice(0,3)}`);
-            console.log(`                    ${state.slice(3,6)}`);
-            console.log(`                    ${state.slice(6,9)}`);
-        }
-    }
-
-    getQValues(state, print=false) {
-        if (DEBUG && print) {console.log(`                            getQValues for ${state}`);}
-        if (!this.qTable.has(state)) {
-            if (DEBUG && print) {console.log(`                                !!!UNKNOWN STATE!!! ${state}`);}
-            const qValues = this.calculateStateQValues(state);
-            this.qTable.set(state, qValues);
-        }
-        const thisValue = this.qTable.get(state);
-        this.printQValues(thisValue);
-        return thisValue;
-    }
-
-    chooseAction(state) {
-        // Exploration
-        if (Math.random() < this.explorationRate) {
-            if (DEBUG) {console.log('                EXPLORE');}
-            const availableMoves = state
-                .split('')
-                .map((v, i) => (v === '-' ? i : -1))
-                .filter(i => i !== -1);
-            return availableMoves[Math.floor(Math.random() * availableMoves.length)];
-        }
-        
-        // Exploitation
-        if (DEBUG) {console.log('                EXPLOIT');}
-        const qValues = this.getQValues(state);
-        const availableMoves = [...state]
-            .map((v, i) => (v === '-' ? i : -1))
-            .filter(i => i !== -1);
-        
-        let bestMove = availableMoves[0];
-        let bestValue = -10.0;
-
-        availableMoves.forEach(move => {
-            const value = qValues[move] || 0;
-            if (value > bestValue) {
-                bestValue = value;
-                bestMove = move;
-            }
-        });
-        return bestMove;
-    }
-
-    learn(state, action, reward, nextState, print=false) {
-        if (DEBUG && print) {console.log(`            LEARN agent${this.num} for state ${state}`);}
-        this.printState(state);
-        const currentQValues = this.getQValues(state);
-        const currentQ = currentQValues[action] || 0;
-
-        const maxNextQ = this.getMaxQValue(nextState);
-        
-        const newQ = currentQ + this.learningRate * (
-            reward + this.discountFactor * maxNextQ - currentQ
-        );
-
-        this.setQValue(state, action, newQ);
-        
-        for (let a = 0; a < ACTIONS.length; a++) {
-            if (state[a] !== '-') {
-                this.setQValue(state, a, -10.0);
-            }
-        }
-    }
-
-    getMaxQValue(state) {
-        if (state != null) {
-            const availableMoves = state
-                .split('')
-                .map((v, i) => (v === '-' ? i : -1))
-                .filter(i => i !== -1);
-            const qValues = this.getQValues(state);
-            const possibleValues = availableMoves.map(move => (qValues[move] ?? 0));
-            const maxValue = possibleValues.length > 0 ? Math.max(...possibleValues) : 0;
-            return maxValue;
-        } else {
-            return 0;
-        }
-    }
-
-    setQValue(state, action, value, print=false) {
-        if (!this.qTable.has(state)) {
-            this.qTable.set(state, this.calculateStateQValues(state));
-        }
-        const qValues = this.qTable.get(state);
-
-        if (DEBUG && print) {
-            console.log(`                    setQValue for state${state} action${action} value${value}`);
-            console.log(`                        OLD qValues =`);
-            console.log(`                            "${qValues[0]}"  "${qValues[1]}"  "${qValues[2]}"`);
-            console.log(`                            "${qValues[3]}"  "${qValues[4]}"  "${qValues[5]}"`);
-            console.log(`                            "${qValues[6]}"  "${qValues[7]}"  "${qValues[8]}"`);
-        }
-
-        qValues[action] = this.clampQValue(value);
-        if (isNaN(qValues[action])) {
-            qValues[action] = 0;
-        }
-
-        if (DEBUG && print) {
-            console.log(`                        NEW qValues =`);
-            console.log(`                            "${qValues[0]}"  "${qValues[1]}"  "${qValues[2]}"`);
-            console.log(`                            "${qValues[3]}"  "${qValues[4]}"  "${qValues[5]}"`);
-            console.log(`                            "${qValues[6]}"  "${qValues[7]}"  "${qValues[8]}"`);
-        }
-    }
-
-    transformBoard(board, mapArray) {
-        const arr = board.split('');
-        const newArr = Array(9).fill('-');
-        for (let i = 0; i < 9; i++) {
-            newArr[i] = arr[ mapArray[i] ];
-        }
-        return newArr.join('');
-    }
-
-    transformAction(actionIndex, mapArray) {
-        for (let i = 0; i < 9; i++) {
-            if (mapArray[i] === actionIndex) { return i; }
-        }
-        return actionIndex;
-    }
-
-    // Train on the whole game once it is over
-    updateHistoricalQValues(finalReward) {
-        if (finalReward == 5) {finalReward = this.drawReward;} // If Draw, use this Agent's draw reward set by user
-        for (let i = this.moveHistory.length - 1; i >= 0; i--) {
-            const discount = Math.pow(this.discountFactor, (this.moveHistory.length - 1 - i));
-            const discountedReward = finalReward * discount;
-            const move = this.moveHistory[i];
-            const nextState = (i < this.moveHistory.length - 1)
-                ? this.moveHistory[i + 1].state
-                : null;
-            if (DEBUG) {
-                console.log(`    Move #${i} from agent${this.num} => state: ${move.state}, action: ${move.action}`);
-            }
-            if (trainOnRotations) {
-                for (const rotationMap of allRotations) {
-                    const translatedState     = this.transformBoard(move.state, rotationMap);
-                    const translatedAction    = this.transformAction(move.action, rotationMap);
-                    const translatedNextState = nextState
-                        ? this.transformBoard(nextState, rotationMap)
-                        : null;
-
-                    this.learn(translatedState, translatedAction, discountedReward, translatedNextState);
-                }
-            } else {
-                this.learn(move.state, move.action, discountedReward, nextState);
-            }
-            
-        }
-        this.moveHistory = [];
     }
 }
 
@@ -402,96 +217,276 @@ class GameRenderer {
     }
 }
 
-// Training function invoked by "Train" button
-async function trainAgent(numGames) {
-    console.log('Training');
-    const trainButton1 = document.getElementById('train-100');
-    const trainButton2 = document.getElementById('train-10k');
-    const trainButton3 = document.getElementById('train-1m');
-    const trainGamesInput = document.getElementById('train-games');
-
-    trainButton1.disabled = true;
-    trainButton2.disabled = true;
-    trainButton3.disabled = true;
-    statusEl.textContent = 'Training...';
-    game.reset();
-    renderer.render(game);
-    reapplyColorMode(game.board, game.recentAgent2Board);
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    episodes = 0;
-    wins1 = 0;
-    draws1 = 0;
-    losses1 = 0;
-
-    let updatesEvery = 1000;
-    let numLoops = numGames / updatesEvery;
-    if (numGames == 100) { updatesEvery = 100; numLoops = 1; }
-    for (let j = 0; j < numLoops; j++) {
-        for (let i = 0; i < updatesEvery; i++) {
-            await selfPlay();
-        }
-        game.reset();
+class DQNAgent {
+    constructor(learningRate, discountFactor, explorationRate, drawReward, number) {
+        // Main Network
+        this.model = tf.sequential();
+        this.model.add(tf.layers.dense({
+            units: 16,
+            activation: 'tanh',
+            inputShape: [9],
+            kernelInitializer: 'zeros' // glorotNormal
+        }));
+        this.model.add(tf.layers.batchNormalization());
+        this.model.add(tf.layers.dense({
+            units: 16,
+            activation: 'tanh',
+            kernelInitializer: 'zeros'
+        }));
+        this.model.add(tf.layers.batchNormalization());
+        this.model.add(tf.layers.dense({
+            units: 9,
+            activation: 'linear',
+            kernelInitializer: 'zeros'
+        }));
         
-        renderer.updateStats(episodes, wins1, draws1, losses1);
-        reapplyColorMode("---------", "---------");
-        await new Promise(resolve => setTimeout(resolve, 0));
+        // Target Network
+        this.targetModel = tf.sequential();
+        this.targetModel.add(tf.layers.dense({
+            units: 16,
+            activation: 'tanh',
+            inputShape: [9],
+            kernelInitializer: 'zeros'
+        }));
+        this.targetModel.add(tf.layers.batchNormalization());
+        this.targetModel.add(tf.layers.dense({
+            units: 16,
+            activation: 'tanh',
+            kernelInitializer: 'zeros'
+        }));
+        this.targetModel.add(tf.layers.batchNormalization());
+        this.targetModel.add(tf.layers.dense({
+            units: 9,
+            activation: 'linear',
+            kernelInitializer: 'zeros'
+        }));
+        
+        this.updateTargetModel(); // Initialize target model with main model weights
+        this.updateCounter = 0;
+        this.targetUpdateFrequency = 500; // Update target network every 500 training steps
+        
+        // Use RMSprop optimizer with gradient clipping
+        const optimizer = tf.train.rmsprop(learningRate, 0.95, 0.01, 1e-7);
+        this.model.compile({
+            optimizer: optimizer,
+            loss: 'meanSquaredError'
+        });
+
+        this.maxBufferSize = 10000;
+        this.batchSize = 64;
+        
+        this.learningRate = learningRate;
+        this.discountFactor = discountFactor;
+        this.explorationRate = explorationRate;
+        this.drawReward = drawReward;
+        this.num = number;
+        this.replayBuffer = [];
+        this.moveHistory = [];
+        this._fitInProgress = false;
     }
-    trainButton1.disabled = false;
-    trainButton2.disabled = false;
-    trainButton3.disabled = false;
-    statusEl.textContent = 'Training Complete';
-}
+    
+    async updateTargetModel() {
+        const weights = this.model.getWeights();
+        this.targetModel.setWeights(weights);
+    }
 
-async function selfPlay() {
-    game.reset();
-    let currentPlayer = 1; // agent1 (X) starts
+    async predictQValues(state) {
+        const inputTensor = encodeState(state);
+        const output = this.model.predict(inputTensor).dataSync();
+        inputTensor.dispose();
+        return output;
+    }
 
-    while (!game.gameOver) {
-        let moveIndex;
-        if (currentPlayer === 1) {
-            if (DEBUG) {console.log('        AGENT1 "X" Begin Turn (agent1)');}
-            moveIndex = agent1.chooseAction(game.board);
-            const reward = game.executeAction(moveIndex, agent1, agent2);
+    // Epsilon-greedy policy
+    async chooseAction(state) {
+        if (Math.random() < this.explorationRate) {
+            // Explore
+            const availableMoves = state
+                .split('')
+                .map((v, i) => (v === '-' ? i : -1))
+                .filter(i => i !== -1);
+            return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+        // Exploit
+        const qValues = await this.predictQValues(state);
+        const availableMoves = state
+            .split('')
+            .map((v, i) => (v === '-' ? i : -1))
+            .filter(i => i !== -1);
 
-            if (game.gameOver) {
-                episodes++;
-            }
-            if (reward === REWARDS.WIN) {
-                wins1++;
-            }
-            if (reward === REWARDS.DRAW) {
-                draws1++;
-            }
-            if (reward === REWARDS.LOSE) {
-                losses1++;
-            }
-        } else {
-            if (DEBUG) {console.log('        AGENT2 "O" Begin Turn (agent2)');}
-            moveIndex = agent2.chooseAction(game.board);
-            const reward = game.executeAction(moveIndex, agent2, agent1);
-
-            if (game.gameOver) {
-                episodes++;
-            }
-            if (reward === REWARDS.WIN) {
-                wins1++;
-            }
-            if (reward === REWARDS.DRAW) {
-                draws1++;
-            }
-            if (reward === REWARDS.LOSE) {
-                losses1++;
+        let bestMove = availableMoves[0];
+        let bestValue = -Infinity;
+        for (const move of availableMoves) {
+            if (qValues[move] > bestValue) {
+                bestValue = qValues[move];
+                bestMove = move;
             }
         }
-        game.printBoard();
-        currentPlayer *= -1;
+        return bestMove;
+    }
+
+    transformBoard(board, mapArray) {
+        const arr = board.split('');
+        const newArr = Array(9).fill('-');
+        for (let i = 0; i < 9; i++) {
+            newArr[i] = arr[ mapArray[i] ];
+        }
+        return newArr.join('');
+    }
+
+    transformAction(actionIndex, mapArray) {
+        for (let i = 0; i < 9; i++) {
+            if (mapArray[i] === actionIndex) { return i; }
+        }
+        return actionIndex;
+    }
+
+    async updateHistoricalQValues(finalReward) {
+        if (finalReward === REWARDS.DRAW) finalReward = this.drawReward;
+        
+        const numMoves = this.moveHistory.length;
+        for (let i = numMoves - 1; i >= 0; i--) {
+            const move = this.moveHistory[i];
+            if (!move || !move.state) continue;
+            
+            // Single discount factor for the whole sequence
+            const discount = Math.pow(this.discountFactor, numMoves - 1 - i);
+            const discountedReward = finalReward * discount;
+            //const nextState = (i < numMoves - 1) ? this.moveHistory[i + 1]?.state : null;
+            const nextState = (i < numMoves - 1) ? this.moveHistory[i + 1].state : null;
+            
+            this.storeExperience(
+                move.state,
+                move.action,
+                discountedReward,
+                nextState,
+                1.0
+            );
+        }
+        
+        this.moveHistory = [];
+        
+        const trainIterations = Math.min(10, Math.floor(this.replayBuffer.length / this.batchSize));
+        for (let i = 0; i < trainIterations; i++) {
+            await this.trainOnBatch();
+        }
+    }
+
+    // Store experience prioritization
+    storeExperience(state, action, reward, nextState, discountFactor) {
+        const experience = {
+            state,
+            action,
+            reward,
+            nextState,
+            discountFactor,
+            priority: Math.abs(reward) // Simple priority based on reward magnitude
+        };
+        
+        this.replayBuffer.push(experience);
+        if (this.replayBuffer.length > this.maxBufferSize) {
+            this.replayBuffer.shift();
+        }
+    }
+
+    // Prioritized sampling for batch training
+    async trainOnBatch() {
+        if (this._fitInProgress) return;
+        if (this.replayBuffer.length < this.batchSize) return;
+
+        this._fitInProgress = true;
+        try {
+            const sortedBuffer = [...this.replayBuffer].sort((a, b) => b.priority - a.priority);
+            const batch = [];
+            const batchSize = Math.min(this.batchSize, this.replayBuffer.length);
+            
+            for (let i = 0; i < batchSize; i++) {
+                // Weighted random sampling
+                const idx = Math.floor(Math.pow(Math.random(), 2) * sortedBuffer.length);
+                batch.push(sortedBuffer[idx]);
+            }
+
+            let rotatedBatch = [];
+            if (trainOnRotations) {
+                for (const experience of batch) {
+                    for (const rotationMap of allRotations) {
+                        rotatedBatch.push({
+                            state: this.transformBoard(experience.state, rotationMap),
+                            action: this.transformAction(experience.action, rotationMap),
+                            reward: experience.reward,
+                            nextState: experience.nextState ? this.transformBoard(experience.nextState, rotationMap) : null,
+                            discountFactor: experience.discountFactor,
+                            priority: experience.priority
+                        });
+                    }
+                }
+            } else {
+                rotatedBatch = batch;
+            }
+
+            // Use separate tensors for states and next states
+            const states = tf.tidy(() => tf.concat(
+                rotatedBatch.map(item => encodeState(item.state))
+            ));
+            
+            const nextStates = tf.tidy(() => {
+                const validNextStates = rotatedBatch
+                    .filter(item => item.nextState !== null)
+                    .map(item => encodeState(item.nextState));
+                return validNextStates.length > 0 ? tf.concat(validNextStates) : null;
+            });
+            
+            const targetQs = tf.tidy(() => {
+                // Get current predictions for all states
+                const currentQs = this.model.predict(states).arraySync();
+                
+                // Get target network predictions for next states
+                let nextQs = [];
+                if (nextStates !== null) {
+                    nextQs = this.targetModel.predict(nextStates).arraySync();
+                }
+                
+                let nextStateIdx = 0;
+                for (let i = 0; i < rotatedBatch.length; i++) {
+                    const { action, reward, nextState } = rotatedBatch[i];
+                    
+                    if (nextState) {
+                        // Use target network for next state Q-values
+                        const maxNextQ = Math.max(...nextQs[nextStateIdx]);
+                        currentQs[i][action] = reward + this.discountFactor * maxNextQ;
+                        nextStateIdx++;
+                    } else {
+                        // Terminal state - just use the reward
+                        currentQs[i][action] = reward;
+                    }
+                }
+                return tf.tensor2d(currentQs, [rotatedBatch.length, 9]);
+            });
+
+            await this.model.fit(states, targetQs, {
+                epochs: 1,
+                verbose: 0,
+                batchSize: 32
+            });
+
+            // Update target network periodically
+            this.updateCounter++;
+            if (this.updateCounter % this.targetUpdateFrequency === 0) {
+                await this.updateTargetModel();
+            }
+
+            states.dispose();
+            if (nextStates !== null) nextStates.dispose();
+            targetQs.dispose();
+        } finally {
+            this._fitInProgress = false;
+        }
     }
 }
 
-// Global Variables
-const agent1 = new QLearningAgent(LEARNING_RATE1, DISCOUNT_FACTOR1, EXPLORATION_RATE1, DRAW_REWARD1, 1);
-const agent2 = new QLearningAgent(LEARNING_RATE2, DISCOUNT_FACTOR2, EXPLORATION_RATE2, DRAW_REWARD2, 2);
+
+const agent1 = new DQNAgent(LEARNING_RATE1, DISCOUNT_FACTOR1, EXPLORATION_RATE1, DRAW_REWARD1, 1);
+const agent2 = new DQNAgent(LEARNING_RATE2, DISCOUNT_FACTOR2, EXPLORATION_RATE2, DRAW_REWARD2, 2);
 
 const boardEl = document.getElementById('board');
 const statsEl = document.getElementById('stats');
@@ -500,7 +495,6 @@ const statusEl = document.getElementById('status');
 
 let colorMode = 'turn1';
 let trainOnRotations = false;
-
 const rotation0Map = [0,1,2,3,4,5,6,7,8];
 const rotation90Map = [6,3,0,7,4,1,8,5,2];
 const rotation180Map = [8,7,6,5,4,3,2,1,0];
@@ -519,27 +513,25 @@ let losses1 = 0;
 
 function updateCellColors(agent, boardState) {
     const cells = document.getElementsByClassName('cell');
-    const qValues = agent.getQValues(boardState);
-    
-    for (let i = 0; i < 9; i++) {
-        const cell = cells[i];
-        const thisCell = document.getElementById(`cell${i}`);
-        const qValue = qValues[i] || 0;
-        
-        if (qValue < 0) {
-            // Negative values - red gradient
-            const redIntensity = Math.abs(qValue) / 10.0;
-            thisCell.style.backgroundColor = `rgb(${Math.floor(Math.min(255, (255 * redIntensity)))}, 0, 0)`;
-        } else if (qValue > 0) {
-            // Positive values - green gradient
-            const greenIntensity = qValue / 10.0;
-            thisCell.style.backgroundColor = `rgb(0, ${Math.floor(Math.min(255, (255 * greenIntensity)))}, 0)`;
-        } else {
-            if (thisCell) {
-                thisCell.style.backgroundColor = '#2a2a2a';
+    agent.predictQValues(boardState).then(qValues => {
+        for (let i = 0; i < 9; i++) {
+            const cell = document.getElementById(`cell${i}`);
+            const val = qValues[i];
+            if (boardState[i] !== '-') {
+                cell.style.backgroundColor = '#2a2a2a';
+                continue;
+            }
+            if (val < 0) {
+                const redIntensity = Math.min(255, 255 * (Math.abs(val) / REWARDS.WIN));
+                cell.style.backgroundColor = `rgb(${Math.floor(redIntensity)}, 0, 0)`;
+            } else if (val > 0) {
+                const greenIntensity = Math.min(255, 255 * (val / REWARDS.WIN));
+                cell.style.backgroundColor = `rgb(0, ${Math.floor(greenIntensity)}, 0)`;
+            } else {
+                cell.style.backgroundColor = '#2a2a2a';
             }
         }
-    }
+    });
 }
 
 async function reapplyColorMode(boardState1, boardState2) {
@@ -549,10 +541,8 @@ async function reapplyColorMode(boardState1, boardState2) {
             cells[i].style.backgroundColor = '#2a2a2a';
         }
     } else if (colorMode === 'turn1') {
-        const qValues = agent1.getQValues(boardState1);
         updateCellColors(agent1, boardState1);
     } else if (colorMode === 'turn2') {
-        const qValues = agent2.getQValues(boardState2);
         updateCellColors(agent2, boardState2);
     }
 }
@@ -560,13 +550,9 @@ async function reapplyColorMode(boardState1, boardState2) {
 function makeMove(index) {
     console.log("");
     console.log("===========================makeMove=============================");
-
-    // In a user-vs-agent2 scenario, we treat the user as "X" and agent2 as "O"
     const reward = game.executeAction(index, agent1, agent2);
     game.recentAgent2Board = game.board;
     renderer.render(game);
-
-    const tempBoard = game.board;
 
     reapplyColorMode(game.board, game.recentAgent2Board);
 
@@ -586,18 +572,15 @@ function makeMove(index) {
             reapplyColorMode(game.board, game.recentAgent2Board);
         }, 500);
     } else {
-        // Now agent2 moves
         console.log("    Agent2's Turn");
         game.printBoard();
         reapplyColorMode(game.board, game.recentAgent2Board);
-        setTimeout(() => {
-            const aiMoveIndex = agent2.chooseAction(game.board);
+        setTimeout(async () => {
+            const aiMoveIndex = await agent2.chooseAction(game.board);
             const aiReward = game.executeAction(aiMoveIndex, agent2, agent1);
             renderer.render(game);
-
             reapplyColorMode(game.board, game.recentAgent2Board);
 
-            // Check if the game ended after Agent2's move
             if (game.gameOver) {
                 episodes++;
                 if (aiReward === REWARDS.WIN) {
@@ -608,15 +591,12 @@ function makeMove(index) {
                     losses1++;
                 }
                 renderer.updateStats(episodes, wins1, draws1, losses1);
-
-                // Delay resetting the board by 1/2 second
                 setTimeout(() => {
                     game.reset();
                     renderer.render(game);
                     reapplyColorMode(game.board, game.recentAgent2Board);
                 }, 500);
             }
-
             DEBUG = false;
         }, 250);
     }
@@ -634,7 +614,7 @@ document.getElementById('gamma-slider1').addEventListener('input', (e) => {
 });
 document.getElementById('alpha-slider1').addEventListener('input', (e) => {
     LEARNING_RATE1 = parseFloat(e.target.value);
-    agent1.learningRate = LEARNING_RATE1;
+    agent1.model.compile({ optimizer: tf.train.adam(LEARNING_RATE1), loss: 'meanSquaredError' });
     document.getElementById('alpha-value1').textContent = LEARNING_RATE1.toFixed(2);
 });
 document.getElementById('draw-slider1').addEventListener('input', (e) => {
@@ -655,7 +635,7 @@ document.getElementById('gamma-slider2').addEventListener('input', (e) => {
 });
 document.getElementById('alpha-slider2').addEventListener('input', (e) => {
     LEARNING_RATE2 = parseFloat(e.target.value);
-    agent2.learningRate = LEARNING_RATE2;
+    agent2.model.compile({ optimizer: tf.train.adam(LEARNING_RATE2), loss: 'meanSquaredError' });
     document.getElementById('alpha-value2').textContent = LEARNING_RATE2.toFixed(2);
 });
 document.getElementById('draw-slider2').addEventListener('input', (e) => {
@@ -681,11 +661,83 @@ document.getElementsByName('colorMode').forEach(radio => {
         reapplyColorMode(game.board, game.recentAgent2Board);
     });
 });
-
 document.getElementById('rotationToggle').addEventListener('change', (e) => {
   trainOnRotations = e.target.checked;
   console.log('Train on Rotations is now:', trainOnRotations);
 });
+
+async function trainAgent(numGames) {
+    console.log('Training');
+    const trainButton1 = document.getElementById('train-100');
+    const trainButton2 = document.getElementById('train-10k');
+    const trainButton3 = document.getElementById('train-1m');
+    const trainGamesInput = document.getElementById('train-games');
+
+    trainButton1.disabled = true;
+    trainButton2.disabled = true;
+    trainButton3.disabled = true;
+    statusEl.textContent = 'Training...';
+    game.reset();
+    renderer.render(game);
+    reapplyColorMode(game.board, game.recentAgent2Board);
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    episodes = 0;
+    wins1 = 0;
+    draws1 = 0;
+    losses1 = 0;
+
+    let updatesEvery = 1000;
+    let numLoops = numGames / updatesEvery;
+    if (numGames == 100) {
+        updatesEvery = 100;
+        numLoops = 1;
+    }
+    for (let j = 0; j < numLoops; j++) {
+        for (let i = 0; i < updatesEvery; i++) {
+            agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
+            agent2.explorationRate = calculateEpsilonDecay(episodes, numGames);
+            await selfPlay();
+        }
+        game.reset();
+        renderer.updateStats(episodes, wins1, draws1, losses1);
+        console.log(episodes);
+        reapplyColorMode("---------", "---------");
+        await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    trainButton1.disabled = false;
+    trainButton2.disabled = false;
+    trainButton3.disabled = false;
+    statusEl.textContent = 'Training Complete';
+}
+
+async function selfPlay() {
+    game.reset();
+    let currentPlayer = 1;
+
+    while (!game.gameOver) {
+        let moveIndex;
+        if (currentPlayer === 1) {
+            if (DEBUG) {console.log('        AGENT1 "X" Begin Turn (agent1)');}
+            moveIndex = await agent1.chooseAction(game.board);
+            const reward = game.executeAction(moveIndex, agent1, agent2);
+            if (game.gameOver) episodes++;
+            if (reward === REWARDS.WIN) wins1++;
+            if (reward === REWARDS.DRAW) draws1++;
+            if (reward === REWARDS.LOSE) losses1++;
+        } else {
+            if (DEBUG) {console.log('        AGENT2 "O" Begin Turn (agent2)');}
+            moveIndex = await agent2.chooseAction(game.board);
+            const reward = game.executeAction(moveIndex, agent2, agent1);
+            if (game.gameOver) episodes++;
+            if (reward === REWARDS.WIN) wins1++;
+            if (reward === REWARDS.DRAW) draws1++;
+            if (reward === REWARDS.LOSE) losses1++;
+        }
+        game.printBoard();
+        currentPlayer *= -1;
+    }
+}
 
 renderer.render(game);
 reapplyColorMode(game.board, game.recentAgent2Board);
