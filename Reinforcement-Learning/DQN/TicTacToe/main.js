@@ -5,27 +5,64 @@ const REWARDS = {
     DRAW: 0.1     // 5
 };
 
-let LEARNING_RATE1 = 0.05;
+let LEARNING_RATE1 = 0.025;
 let DISCOUNT_FACTOR1 = 0.95;
 let EXPLORATION_RATE1 = 0.995;
-let DRAW_REWARD1 = 1.0;
+let DRAW_REWARD1 = 0.1;
 
-let LEARNING_RATE2 = 0.05;
+let LEARNING_RATE2 = 0.025;
 let DISCOUNT_FACTOR2 = 0.95;
 let EXPLORATION_RATE2 = 0.995;
-let DRAW_REWARD2 = 1.0;
+let DRAW_REWARD2 = 0.1;
+
+const TRAIN_ITERATIONS = 10;
 
 let DEBUG = false;
 
 const ACTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+/*
+// Function to select the appropriate backend (GPU if available, otherwise CPU)
+async function setBackend() {
+    // Check if WebGL backend (GPU) is available
+    const webglBackend = tf.engine().findBackend('webgl');
+    if (webglBackend) {
+        await tf.setBackend('webgl');
+        console.log('Using GPU acceleration with WebGL backend.');
+    } else {
+        await tf.setBackend('cpu');
+        console.log('GPU acceleration not available; using CPU backend.');
+    }
+}
+
+// Set the backend before any TensorFlow operations
+setBackend().then(() => {
+    // Function to encode game state for TicTacToe.
+    // 'X' -> +1, 'O' -> -1, '-' -> 0
+    function encodeState(stateStr) {
+        const arr = stateStr.split('').map(ch => {
+            if (ch === 'X') return 1.0;
+            if (ch === 'O') return -1.0;
+            return 0.0;
+        });
+        return tf.tensor2d([arr], [1, 9]);
+    }
+
+    // Example usage of encodeState:
+    const sampleState = 'XOX------'; // Example TicTacToe board state.
+    const stateTensor = encodeState(sampleState);
+    stateTensor.print(); // Print the tensor to verify
+
+    // Additional code for model setup and training would go here...
+});*/
 
 // From Letters to Numbers
 function encodeState(stateStr) {
     // 'X' -> +1, 'O' -> -1, '-' -> 0
     const arr = stateStr.split('').map(ch => {
         if (ch === 'X') return 1.0;
-        if (ch === 'O') return 0.0; // -1
-        return 0.5; // 0
+        if (ch === 'O') return -1.0; // -1
+        return 0.0; // 0
     });
     return tf.tensor2d([arr], [1, 9]);
 }
@@ -82,16 +119,19 @@ class TicTacToeGame {
 
         if (winner === 1) {
             this.gameOver = true;
+            if (DEBUG) console.log('AGENT 1 WINS');
             playingAgent.updateHistoricalQValues(REWARDS.WIN);
             waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
             return REWARDS.LOSE;
         } else if (winner === -1) {
             this.gameOver = true;
+            if (DEBUG) console.log('AGENT 2 WINS');
             playingAgent.updateHistoricalQValues(REWARDS.WIN);
             waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
             return REWARDS.WIN;
         } else if (winner === 0) {
             this.gameOver = true;
+            if (DEBUG) console.log('DRAW');
             playingAgent.updateHistoricalQValues(REWARDS.DRAW);
             waitingAgent.updateHistoricalQValues(REWARDS.DRAW);
             return REWARDS.DRAW;
@@ -222,43 +262,55 @@ class DQNAgent {
         // Main Network
         this.model = tf.sequential();
         this.model.add(tf.layers.dense({
-            units: 16,
-            activation: 'tanh',
+            units: 64,
+            activation: 'tanh', // tanh relu
             inputShape: [9],
-            kernelInitializer: 'zeros' // glorotNormal
+            kernelInitializer: 'glorotNormal' // glorotNormal zeros
         }));
         this.model.add(tf.layers.batchNormalization());
         this.model.add(tf.layers.dense({
-            units: 16,
+            units: 64,
             activation: 'tanh',
-            kernelInitializer: 'zeros'
+            kernelInitializer: 'glorotNormal'
+        }));
+        this.model.add(tf.layers.batchNormalization());
+        this.model.add(tf.layers.dense({
+            units: 64,
+            activation: 'tanh',
+            kernelInitializer: 'glorotNormal'
         }));
         this.model.add(tf.layers.batchNormalization());
         this.model.add(tf.layers.dense({
             units: 9,
-            activation: 'linear',
-            kernelInitializer: 'zeros'
+            activation: 'tanh',
+            kernelInitializer: 'glorotNormal'
         }));
         
         // Target Network
         this.targetModel = tf.sequential();
         this.targetModel.add(tf.layers.dense({
-            units: 16,
+            units: 64,
             activation: 'tanh',
             inputShape: [9],
-            kernelInitializer: 'zeros'
+            kernelInitializer: 'glorotNormal'
         }));
         this.targetModel.add(tf.layers.batchNormalization());
         this.targetModel.add(tf.layers.dense({
-            units: 16,
+            units: 64,
             activation: 'tanh',
-            kernelInitializer: 'zeros'
+            kernelInitializer: 'glorotNormal'
+        }));
+        this.targetModel.add(tf.layers.batchNormalization());
+        this.targetModel.add(tf.layers.dense({
+            units: 64,
+            activation: 'tanh',
+            kernelInitializer: 'glorotNormal'
         }));
         this.targetModel.add(tf.layers.batchNormalization());
         this.targetModel.add(tf.layers.dense({
             units: 9,
-            activation: 'linear',
-            kernelInitializer: 'zeros'
+            activation: 'tanh',
+            kernelInitializer: 'glorotNormal'
         }));
         
         this.updateTargetModel(); // Initialize target model with main model weights
@@ -266,14 +318,15 @@ class DQNAgent {
         this.targetUpdateFrequency = 500; // Update target network every 500 training steps
         
         // Use RMSprop optimizer with gradient clipping
-        const optimizer = tf.train.rmsprop(learningRate, 0.95, 0.01, 1e-7);
+        //const optimizer = tf.train.rmsprop(learningRate, 0.95, 0.01, 1e-7);
+        const optimizer = tf.train.adam(learningRate);
         this.model.compile({
             optimizer: optimizer,
             loss: 'meanSquaredError'
         });
 
         this.maxBufferSize = 10000;
-        this.batchSize = 64;
+        this.batchSize = 2048;
         
         this.learningRate = learningRate;
         this.discountFactor = discountFactor;
@@ -292,6 +345,7 @@ class DQNAgent {
 
     async predictQValues(state) {
         const inputTensor = encodeState(state);
+        if (DEBUG) console.log(`inputTensor = ${inputTensor}`);
         const output = this.model.predict(inputTensor).dataSync();
         inputTensor.dispose();
         return output;
@@ -366,7 +420,7 @@ class DQNAgent {
         
         this.moveHistory = [];
         
-        const trainIterations = Math.min(10, Math.floor(this.replayBuffer.length / this.batchSize));
+        const trainIterations = Math.min(TRAIN_ITERATIONS, Math.floor(this.replayBuffer.length / this.batchSize));
         for (let i = 0; i < trainIterations; i++) {
             await this.trainOnBatch();
         }
@@ -464,9 +518,9 @@ class DQNAgent {
             });
 
             await this.model.fit(states, targetQs, {
-                epochs: 1,
+                epochs: 2,
                 verbose: 0,
-                batchSize: 32
+                batchSize: 512
             });
 
             // Update target network periodically
@@ -514,6 +568,7 @@ let losses1 = 0;
 function updateCellColors(agent, boardState) {
     const cells = document.getElementsByClassName('cell');
     agent.predictQValues(boardState).then(qValues => {
+        console.log(`Agent${agent.num} qValues Predicted = ${qValues}`)
         for (let i = 0; i < 9; i++) {
             const cell = document.getElementById(`cell${i}`);
             const val = qValues[i];
@@ -535,6 +590,8 @@ function updateCellColors(agent, boardState) {
 }
 
 async function reapplyColorMode(boardState1, boardState2) {
+    if (DEBUG) console.log(`BoardState1 = ${boardState1}`);
+    if (DEBUG) console.log(`BoardState2 = ${boardState2}`);
     if (colorMode === 'none') {
         const cells = document.getElementsByClassName('cell');
         for (let i = 0; i < cells.length; i++) {
@@ -645,7 +702,7 @@ document.getElementById('draw-slider2').addEventListener('input', (e) => {
 });
 
 document.getElementById('train-100').addEventListener('click', () => {
-  trainAgent(100);
+    trainAgent(10); // tk todo
 });
 document.getElementById('train-10k').addEventListener('click', () => {
     trainAgent(10000);
@@ -689,13 +746,14 @@ async function trainAgent(numGames) {
 
     let updatesEvery = 1000;
     let numLoops = numGames / updatesEvery;
-    if (numGames == 100) {
-        updatesEvery = 100;
+    if (numGames <= 100) {
+        updatesEvery = numGames;
         numLoops = 1;
     }
     for (let j = 0; j < numLoops; j++) {
         for (let i = 0; i < updatesEvery; i++) {
             agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
+            agent1.explorationRate = 1.0;
             agent2.explorationRate = calculateEpsilonDecay(episodes, numGames);
             await selfPlay();
         }
