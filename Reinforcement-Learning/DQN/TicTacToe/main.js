@@ -56,13 +56,25 @@ setBackend().then(() => {
     // Additional code for model setup and training would go here...
 });*/
 
-// From Letters to Numbers
+// From Numbers to Letters for rendering
+function decodeState(state) {
+    return state.map(val => {
+        if (val === 1) return 'X';
+        if (val === -1) return 'O';
+        return '-';
+    }).join('');
+}
+
+// From Letters to Numbers - Only used for backward compatibility
 function encodeState(stateStr) {
+    if (Array.isArray(stateStr)) {
+        return tf.tensor2d([stateStr], [1, 9]);
+    }
     // 'X' -> +1, 'O' -> -1, '-' -> 0
     const arr = stateStr.split('').map(ch => {
         if (ch === 'X') return 1.0;
-        if (ch === 'O') return -1.0; // -1
-        return 0.0; // 0
+        if (ch === 'O') return -1.0;
+        return 0.0;
     });
     return tf.tensor2d([arr], [1, 9]);
 }
@@ -81,8 +93,8 @@ class TicTacToeGame {
     }
 
     reset() {
-        this.board = '---------';
-        this.recentAgent2Board = '---------';
+        this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.recentAgent2Board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.currentPlayer = 1; // Agent1 is 1, Agent2 is -1
         this.gameOver = false;
         this.winningCombo = null;
@@ -92,26 +104,28 @@ class TicTacToeGame {
         return this.board;
     }
 
+    getDecodedBoard() {
+        return decodeState(this.board);
+    }
+
     printBoard() {
         if (DEBUG) {
-            console.log(`                        ${this.board.slice(0,3)}`);
-            console.log(`                        ${this.board.slice(3,6)}`);
-            console.log(`                        ${this.board.slice(6,9)}`);
+            const decodedBoard = decodeState(this.board);
+            console.log(`                        ${decodedBoard.slice(0,3)}`);
+            console.log(`                        ${decodedBoard.slice(3,6)}`);
+            console.log(`                        ${decodedBoard.slice(6,9)}`);
         }
     }
 
     executeAction(index, playingAgent, waitingAgent) {
-        if (this.board[index] !== '-' || this.gameOver) return REWARDS.MOVE;
+        if (this.board[index] !== 0 || this.gameOver) return REWARDS.MOVE;
 
         playingAgent.moveHistory.push({
-            state: this.board,
+            state: [...this.board],
             action: index
         });
 
-        this.board =
-            this.board.slice(0, index) +
-            (this.currentPlayer === 1 ? 'X' : 'O') +
-            this.board.slice(index + 1);
+        this.board[index] = this.currentPlayer;
 
         this.printBoard();
         
@@ -138,7 +152,7 @@ class TicTacToeGame {
         }
 
         this.currentPlayer *= -1;
-        if (DEBUG) {console.log(`                    this.board = ${this.board}`);}
+        if (DEBUG) {console.log(`                    this.board = ${decodeState(this.board)}`);}
         return REWARDS.MOVE;
     }
 
@@ -150,11 +164,7 @@ class TicTacToeGame {
         ];
 
         for (const combo of winningCombos) {
-            const sum = combo.map(i => {
-                if (this.board[i] === 'X') return 1;
-                if (this.board[i] === 'O') return -1;
-                return 0;
-            }).reduce((a, b) => a + b, 0);
+            const sum = combo.map(i => this.board[i]).reduce((a, b) => a + b, 0);
             if (sum === 3) {
                 this.winningCombo = combo;
                 return 1;
@@ -165,7 +175,7 @@ class TicTacToeGame {
             }
         }
 
-        if (this.board.split('').every(cell => cell !== '-')) return 0;
+        if (this.board.every(cell => cell !== 0)) return 0;
         return null;
     }
 }
@@ -179,7 +189,8 @@ class GameRenderer {
 
     render(game) {
         this.boardEl.innerHTML = '';
-        [...game.board].forEach((value, index) => {
+        const decodedBoard = decodeState(game.board);
+        [...decodedBoard].forEach((value, index) => {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.id = `cell${index}`;
@@ -355,18 +366,16 @@ class DQNAgent {
     async chooseAction(state) {
         if (Math.random() < this.explorationRate) {
             // Explore
-            const availableMoves = state
-                .split('')
-                .map((v, i) => (v === '-' ? i : -1))
-                .filter(i => i !== -1);
+            const availableMoves = Array.isArray(state) ? 
+                state.map((v, i) => (v === 0 ? i : -1)).filter(i => i !== -1) :
+                state.split('').map((v, i) => (v === '-' ? i : -1)).filter(i => i !== -1);
             return availableMoves[Math.floor(Math.random() * availableMoves.length)];
         }
         // Exploit
         const qValues = await this.predictQValues(state);
-        const availableMoves = state
-            .split('')
-            .map((v, i) => (v === '-' ? i : -1))
-            .filter(i => i !== -1);
+        const availableMoves = Array.isArray(state) ? 
+            state.map((v, i) => (v === 0 ? i : -1)).filter(i => i !== -1) :
+            state.split('').map((v, i) => (v === '-' ? i : -1)).filter(i => i !== -1);
 
         let bestMove = availableMoves[0];
         let bestValue = -Infinity;
@@ -380,12 +389,20 @@ class DQNAgent {
     }
 
     transformBoard(board, mapArray) {
-        const arr = board.split('');
-        const newArr = Array(9).fill('-');
-        for (let i = 0; i < 9; i++) {
-            newArr[i] = arr[ mapArray[i] ];
+        if (Array.isArray(board)) {
+            const newArr = Array(9).fill(0);
+            for (let i = 0; i < 9; i++) {
+                newArr[i] = board[mapArray[i]];
+            }
+            return newArr;
+        } else {
+            const arr = board.split('');
+            const newArr = Array(9).fill('-');
+            for (let i = 0; i < 9; i++) {
+                newArr[i] = arr[mapArray[i]];
+            }
+            return newArr.join('');
         }
-        return newArr.join('');
     }
 
     transformAction(actionIndex, mapArray) {
@@ -406,7 +423,6 @@ class DQNAgent {
             // Single discount factor for the whole sequence
             const discount = Math.pow(this.discountFactor, numMoves - 1 - i);
             const discountedReward = finalReward * discount;
-            //const nextState = (i < numMoves - 1) ? this.moveHistory[i + 1]?.state : null;
             const nextState = (i < numMoves - 1) ? this.moveHistory[i + 1].state : null;
             
             this.storeExperience(
@@ -572,7 +588,7 @@ function updateCellColors(agent, boardState) {
         for (let i = 0; i < 9; i++) {
             const cell = document.getElementById(`cell${i}`);
             const val = qValues[i];
-            if (boardState[i] !== '-') {
+            if (Array.isArray(boardState) ? boardState[i] !== 0 : boardState[i] !== '-') {
                 cell.style.backgroundColor = '#2a2a2a';
                 continue;
             }
@@ -608,7 +624,7 @@ function makeMove(index) {
     console.log("");
     console.log("===========================makeMove=============================");
     const reward = game.executeAction(index, agent1, agent2);
-    game.recentAgent2Board = game.board;
+    game.recentAgent2Board = [...game.board];
     renderer.render(game);
 
     reapplyColorMode(game.board, game.recentAgent2Board);
@@ -760,7 +776,7 @@ async function trainAgent(numGames) {
         game.reset();
         renderer.updateStats(episodes, wins1, draws1, losses1);
         console.log(episodes);
-        reapplyColorMode("---------", "---------");
+        reapplyColorMode([0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0]);
         await new Promise(resolve => setTimeout(resolve, 0));
     }
     trainButton1.disabled = false;
