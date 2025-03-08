@@ -507,30 +507,57 @@ class DQNAgent {
             });
             
             const targetQs = tf.tidy(() => {
-                // Get current predictions for all states
-                const currentQs = this.model.predict(states).arraySync();
+                // Split batch into terminal and non-terminal states
+                const terminalStates = rotatedBatch.filter(exp => !exp.nextState);
+                const nonTerminalStates = rotatedBatch.filter(exp => exp.nextState);
                 
-                // Get target network predictions for next states
-                let nextQs = [];
-                if (nextStates !== null) {
-                    nextQs = this.targetModel.predict(nextStates).arraySync();
+                // Process terminal states (they only need rewards)
+                const terminalQs = this.model.predict(
+                    tf.tensor2d(terminalStates.map(exp => exp.state), [terminalStates.length, 9])
+                ).arraySync();
+
+                // Update terminal states with just rewards
+                terminalStates.forEach((exp, i) => {
+                    terminalQs[i][exp.action] = exp.reward;
+                });
+
+                // Process non-terminal states
+                let nonTerminalQs = [];
+                if (nonTerminalStates.length > 0) {
+                    const currentPredictions = this.model.predict(
+                        tf.tensor2d(nonTerminalStates.map(exp => exp.state), [nonTerminalStates.length, 9])
+                    );
+
+                    const nextStatePredictions = this.targetModel.predict(
+                        tf.tensor2d(nonTerminalStates.map(exp => exp.nextState), [nonTerminalStates.length, 9])
+                    );
+
+                    const maxNextQs = nextStatePredictions.max(1).arraySync();
+                    nonTerminalQs = currentPredictions.arraySync();
+
+                    // Update non-terminal states with discounted rewards
+                    nonTerminalStates.forEach((exp, i) => {
+                        nonTerminalQs[i][exp.action] = exp.reward + this.discountFactor * maxNextQs[i];
+                    });
+
+                    nextStatePredictions.dispose();
+                    currentPredictions.dispose();
                 }
-                
-                let nextStateIdx = 0;
-                for (let i = 0; i < rotatedBatch.length; i++) {
-                    const { action, reward, nextState } = rotatedBatch[i];
-                    
-                    if (nextState) {
-                        // Use target network for next state Q-values
-                        const maxNextQ = Math.max(...nextQs[nextStateIdx]);
-                        currentQs[i][action] = reward + this.discountFactor * maxNextQ;
-                        nextStateIdx++;
+
+                // Combine results in original order
+                const allQs = new Array(rotatedBatch.length);
+                let terminalIdx = 0;
+                let nonTerminalIdx = 0;
+
+                rotatedBatch.forEach((exp, i) => {
+                    if (exp.nextState) {
+                        allQs[i] = nonTerminalQs[nonTerminalIdx++];
                     } else {
-                        // Terminal state - just use the reward
-                        currentQs[i][action] = reward;
+                        allQs[i] = terminalQs[terminalIdx++];
                     }
-                }
-                return tf.tensor2d(currentQs, [rotatedBatch.length, 9]);
+                });
+
+                return tf.tensor2d(allQs, [rotatedBatch.length, 9]);
             });
 
             await this.model.fit(states, targetQs, {
@@ -718,7 +745,7 @@ document.getElementById('draw-slider2').addEventListener('input', (e) => {
 });
 
 document.getElementById('train-100').addEventListener('click', () => {
-    trainAgent(10); // tk todo
+    trainAgent(100);
 });
 document.getElementById('train-10k').addEventListener('click', () => {
     trainAgent(10000);
