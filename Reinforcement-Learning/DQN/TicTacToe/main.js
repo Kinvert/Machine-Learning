@@ -101,7 +101,7 @@ class TicTacToeGame {
     }
 
     getState() {
-        return this.board;
+        return [...this.board];
     }
 
     getDecodedBoard() {
@@ -121,7 +121,7 @@ class TicTacToeGame {
         if (this.board[index] !== 0 || this.gameOver) return REWARDS.MOVE;
 
         playingAgent.moveHistory.push({
-            state: [...this.board],
+            state: [...this.board], // Train them on the state they SAW, not the state they created
             action: index
         });
 
@@ -136,24 +136,28 @@ class TicTacToeGame {
             if (DEBUG) console.log('AGENT 1 WINS');
             playingAgent.updateHistoricalQValues(REWARDS.WIN);
             waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
-            return REWARDS.LOSE;
+            return REWARDS.LOSE; // Agent 2 loses
         } else if (winner === -1) {
             this.gameOver = true;
             if (DEBUG) console.log('AGENT 2 WINS');
             playingAgent.updateHistoricalQValues(REWARDS.WIN);
             waitingAgent.updateHistoricalQValues(REWARDS.LOSE);
-            return REWARDS.WIN;
+            return REWARDS.WIN; // Agent 2 wins
         } else if (winner === 0) {
             this.gameOver = true;
             if (DEBUG) console.log('DRAW');
             playingAgent.updateHistoricalQValues(REWARDS.DRAW);
             waitingAgent.updateHistoricalQValues(REWARDS.DRAW);
-            return REWARDS.DRAW;
+            return REWARDS.DRAW; // Agent 2 draws
         }
 
         this.currentPlayer *= -1;
         if (DEBUG) {console.log(`                    this.board = ${decodeState(this.board)}`);}
-        return REWARDS.MOVE;
+        if (playingAgent.num == 2) {
+            return REWARDS.MOVE; // Agent 2 moved
+        } else {
+            return 0.00001; // Basically nothing, they survived agent 1's move
+        }
     }
 
     checkWinner() {
@@ -263,8 +267,8 @@ class GameRenderer {
         this.boardEl.appendChild(line);
     }
 
-    updateStats(episodes, wins1, draws1, losses1) {
-        this.statsEl.textContent = `Agent2 Episodes: ${episodes} | Wins: ${wins1} | Draws: ${draws1} | Losses: ${losses1}`;
+    updateStats(episodes, wins2, draws2, losses2) {
+        this.statsEl.textContent = `Agent2 Episodes: ${episodes} | Wins: ${wins2} | Draws: ${draws2} | Losses: ${losses2}`;
     }
 }
 
@@ -604,9 +608,9 @@ const game = new TicTacToeGame();
 const renderer = new GameRenderer(boardEl, statsEl, debugEl);
 
 let episodes = 0;
-let wins1 = 0;
-let draws1 = 0;
-let losses1 = 0;
+let wins2 = 0;
+let draws2 = 0;
+let losses2 = 0;
 
 function updateCellColors(agent, boardState) {
     const cells = document.getElementsByClassName('cell');
@@ -659,13 +663,13 @@ function makeMove(index) {
     if (game.gameOver) {
         episodes++;
         if (reward === REWARDS.WIN) {
-            wins1++;
+            wins2++;
         } else if (reward === REWARDS.DRAW) {
-            draws1++;
+            draws2++;
         } else if (reward === REWARDS.LOSE) {
-            losses1++;
+            losses2++;
         }
-        renderer.updateStats(episodes, wins1, draws1, losses1);
+        renderer.updateStats(episodes, wins2, draws2, losses2);
         setTimeout(() => {
             game.reset();
             renderer.render(game);
@@ -684,13 +688,13 @@ function makeMove(index) {
             if (game.gameOver) {
                 episodes++;
                 if (aiReward === REWARDS.WIN) {
-                    wins1++;
+                    wins2++;
                 } else if (aiReward === REWARDS.DRAW) {
-                    draws1++;
+                    draws2++;
                 } else if (aiReward === REWARDS.LOSE) {
-                    losses1++;
+                    losses2++;
                 }
-                renderer.updateStats(episodes, wins1, draws1, losses1);
+                renderer.updateStats(episodes, wins2, draws2, losses2);
                 setTimeout(() => {
                     game.reset();
                     renderer.render(game);
@@ -783,9 +787,9 @@ async function trainAgent(numGames) {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     episodes = 0;
-    wins1 = 0;
-    draws1 = 0;
-    losses1 = 0;
+    wins2 = 0;
+    draws2 = 0;
+    losses2 = 0;
 
     let updatesEvery = 1000;
     let numLoops = numGames / updatesEvery;
@@ -801,7 +805,7 @@ async function trainAgent(numGames) {
             await selfPlay();
         }
         game.reset();
-        renderer.updateStats(episodes, wins1, draws1, losses1);
+        renderer.updateStats(episodes, wins2, draws2, losses2);
         console.log(episodes);
         reapplyColorMode([0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0]);
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -823,17 +827,17 @@ async function selfPlay() {
             moveIndex = await agent1.chooseAction(game.board);
             const reward = game.executeAction(moveIndex, agent1, agent2);
             if (game.gameOver) episodes++;
-            if (reward === REWARDS.WIN) wins1++;
-            if (reward === REWARDS.DRAW) draws1++;
-            if (reward === REWARDS.LOSE) losses1++;
+            if (reward === REWARDS.WIN) wins2++; // Agent 2 wins
+            if (reward === REWARDS.DRAW) draws2++; // Agent 2 draws
+            if (reward === REWARDS.LOSE) losses2++; // Agent 2 loses
         } else {
             if (DEBUG) {console.log('        AGENT2 "O" Begin Turn (agent2)');}
             moveIndex = await agent2.chooseAction(game.board);
             const reward = game.executeAction(moveIndex, agent2, agent1);
             if (game.gameOver) episodes++;
-            if (reward === REWARDS.WIN) wins1++;
-            if (reward === REWARDS.DRAW) draws1++;
-            if (reward === REWARDS.LOSE) losses1++;
+            if (reward === REWARDS.WIN) wins2++; // Agent 2 wins
+            if (reward === REWARDS.DRAW) draws2++; // Agent 2 draws
+            if (reward === REWARDS.LOSE) losses2++; // Agent 2 loses
         }
         game.printBoard();
         currentPlayer *= -1;
