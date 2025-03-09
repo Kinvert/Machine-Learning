@@ -12,14 +12,14 @@
         .board {
             position: relative;
             display: grid;
-            grid-template-columns: repeat(3, 100px);
+            grid-template-columns: repeat(3, 50px);
             grid-gap: 5px;
             justify-content: center;
             margin: 20px;
         }
         .cell {
-            width: 100px;
-            height: 100px;
+            width: 50px;
+            height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -73,6 +73,17 @@
         button:disabled {
             background: #cccccc;
             cursor: not-allowed;
+        }
+        .pass { color: green; }
+        .fail { color: red; }
+        .summary {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .failures {
+            text-align: left;
+            margin: 10px 20px;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
@@ -154,8 +165,11 @@
     <div id="status">Your Turn</div>
     <div class="board" id="board"></div>
     <div id="stats">Agent2 Episodes: 0 | Wins: 0 | Draws: 0 | Losses: 0</div>
-    
+    <h2>DecodeState Function Tests</h2>
+    <div id="summary" class="summary"></div>
+    <div id="failures" class="failures"></div>
     <script src="main.js"></script>
+    <script src="tests.js"></script>
     
 </body>
 </html>

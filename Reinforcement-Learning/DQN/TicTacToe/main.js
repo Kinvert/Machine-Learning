@@ -18,10 +18,10 @@ let DRAW_REWARD2 = 0.1;
 const TRAIN_ITERATIONS = 10;
 
 let DEBUG = false;
+let FLOATTYPE = 'float32';
 
 const ACTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-/*
 // Function to select the appropriate backend (GPU if available, otherwise CPU)
 async function setBackend() {
     // Check if WebGL backend (GPU) is available
@@ -45,7 +45,7 @@ setBackend().then(() => {
             if (ch === 'O') return -1.0;
             return 0.0;
         });
-        return tf.tensor2d([arr], [1, 9]);
+        return tf.tensor2d([arr], [1, 9], FLOATTYPE);
     }
 
     // Example usage of encodeState:
@@ -54,7 +54,7 @@ setBackend().then(() => {
     stateTensor.print(); // Print the tensor to verify
 
     // Additional code for model setup and training would go here...
-});*/
+});
 
 // From Numbers to Letters for rendering
 function decodeState(state) {
@@ -68,7 +68,7 @@ function decodeState(state) {
 // From Letters to Numbers - Only used for backward compatibility
 function encodeState(stateStr) {
     if (Array.isArray(stateStr)) {
-        return tf.tensor2d([stateStr], [1, 9]);
+        return tf.tensor2d([stateStr], [1, 9], FLOATTYPE);
     }
     // 'X' -> +1, 'O' -> -1, '-' -> 0
     const arr = stateStr.split('').map(ch => {
@@ -76,7 +76,7 @@ function encodeState(stateStr) {
         if (ch === 'O') return -1.0;
         return 0.0;
     });
-    return tf.tensor2d([arr], [1, 9]);
+    return tf.tensor2d([arr], [1, 9], FLOATTYPE);
 }
 
 function calculateEpsilonDecay(currentEpisode, totalEpisodes) {
@@ -152,7 +152,7 @@ class TicTacToeGame {
         }
 
         this.currentPlayer *= -1;
-        if (DEBUG) {console.log(`                    this.board = ${decodeState(this.board)}`);}
+        //if (DEBUG) {console.log(`                    this.board = ${decodeState(this.board)}`);}
         if (playingAgent.num == 2) {
             return REWARDS.MOVE; // Agent 2 moved
         } else {
@@ -280,25 +280,29 @@ class DQNAgent {
             units: 64,
             activation: 'tanh', // tanh relu
             inputShape: [9],
-            kernelInitializer: 'glorotNormal' // glorotNormal zeros
+            kernelInitializer: 'glorotNormal', // glorotNormal zeros
+            dtype: FLOATTYPE
         }));
         this.model.add(tf.layers.batchNormalization());
         this.model.add(tf.layers.dense({
             units: 64,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         this.model.add(tf.layers.batchNormalization());
         this.model.add(tf.layers.dense({
             units: 64,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         this.model.add(tf.layers.batchNormalization());
         this.model.add(tf.layers.dense({
             units: 9,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         
         // Target Network
@@ -307,25 +311,29 @@ class DQNAgent {
             units: 64,
             activation: 'tanh',
             inputShape: [9],
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         this.targetModel.add(tf.layers.batchNormalization());
         this.targetModel.add(tf.layers.dense({
             units: 64,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         this.targetModel.add(tf.layers.batchNormalization());
         this.targetModel.add(tf.layers.dense({
             units: 64,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         this.targetModel.add(tf.layers.batchNormalization());
         this.targetModel.add(tf.layers.dense({
             units: 9,
             activation: 'tanh',
-            kernelInitializer: 'glorotNormal'
+            kernelInitializer: 'glorotNormal',
+            dtype: FLOATTYPE
         }));
         
         this.updateTargetModel(); // Initialize target model with main model weights
@@ -417,6 +425,7 @@ class DQNAgent {
     }
 
     async updateHistoricalQValues(finalReward) {
+        //if (DEBUG) console.log(`Storing Values for Agent ${this.num}`);
         if (finalReward === REWARDS.DRAW) finalReward = this.drawReward;
         
         const numMoves = this.moveHistory.length;
@@ -441,6 +450,7 @@ class DQNAgent {
         this.moveHistory = [];
         
         const trainIterations = Math.min(TRAIN_ITERATIONS, Math.floor(this.replayBuffer.length / this.batchSize));
+        if (DEBUG) console.log(`Agent${this.num} trainIterations = ${trainIterations}`);
         for (let i = 0; i < trainIterations; i++) {
             await this.trainOnBatch();
         }
@@ -465,20 +475,28 @@ class DQNAgent {
 
     // Prioritized sampling for batch training
     async trainOnBatch() {
-        if (this._fitInProgress) return;
+        if (this._fitInProgress) {
+            if (DEBUG) console.log(`Agent${this.num} _fitInProgress`);
+            return;
+        } else {
+            if (DEBUG) console.log(`Agent${this.num} fitting`);
+        }
         if (this.replayBuffer.length < this.batchSize) return;
 
         this._fitInProgress = true;
         try {
             const sortedBuffer = [...this.replayBuffer].sort((a, b) => b.priority - a.priority);
+            if (DEBUG) console.log('sortedBuffer = ', JSON.stringify(sortedBuffer));
             const batch = [];
             const batchSize = Math.min(this.batchSize, this.replayBuffer.length);
+            if (DEBUG) console.log('batchSize = ', batchSize);
             
             for (let i = 0; i < batchSize; i++) {
                 // Weighted random sampling
                 const idx = Math.floor(Math.pow(Math.random(), 2) * sortedBuffer.length);
                 batch.push(sortedBuffer[idx]);
             }
+            if (DEBUG) console.log('batch = ', JSON.stringify(batch));
 
             let rotatedBatch = [];
             if (trainOnRotations) {
@@ -497,11 +515,13 @@ class DQNAgent {
             } else {
                 rotatedBatch = batch;
             }
+            if (DEBUG) console.log('rotatedBatch = ', JSON.stringify(rotatedBatch));
 
             // Use separate tensors for states and next states
             const states = tf.tidy(() => tf.concat(
                 rotatedBatch.map(item => encodeState(item.state))
             ));
+            if (DEBUG) console.log('states = ', JSON.stringify(states));
             
             const nextStates = tf.tidy(() => {
                 const validNextStates = rotatedBatch
@@ -517,7 +537,7 @@ class DQNAgent {
                 
                 // Process terminal states (they only need rewards)
                 const terminalQs = this.model.predict(
-                    tf.tensor2d(terminalStates.map(exp => exp.state), [terminalStates.length, 9])
+                    tf.tensor2d(terminalStates.map(exp => exp.state), [terminalStates.length, 9], FLOATTYPE)
                 ).arraySync();
 
                 // Update terminal states with just rewards
@@ -529,11 +549,11 @@ class DQNAgent {
                 let nonTerminalQs = [];
                 if (nonTerminalStates.length > 0) {
                     const currentPredictions = this.model.predict(
-                        tf.tensor2d(nonTerminalStates.map(exp => exp.state), [nonTerminalStates.length, 9])
+                        tf.tensor2d(nonTerminalStates.map(exp => exp.state), [nonTerminalStates.length, 9], FLOATTYPE)
                     );
 
                     const nextStatePredictions = this.targetModel.predict(
-                        tf.tensor2d(nonTerminalStates.map(exp => exp.nextState), [nonTerminalStates.length, 9])
+                        tf.tensor2d(nonTerminalStates.map(exp => exp.nextState), [nonTerminalStates.length, 9], FLOATTYPE)
                     );
 
                     const maxNextQs = nextStatePredictions.max(1).arraySync();
@@ -839,7 +859,7 @@ async function selfPlay() {
             if (reward === REWARDS.DRAW) draws2++; // Agent 2 draws
             if (reward === REWARDS.LOSE) losses2++; // Agent 2 loses
         }
-        game.printBoard();
+        //game.printBoard();
         currentPlayer *= -1;
     }
 }
