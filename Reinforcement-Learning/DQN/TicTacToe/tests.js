@@ -126,13 +126,89 @@ const testSuites = {
                         result: agent.transformBoard(board, rotationMap)
                     };
                 }
+            },
+            {
+                name: "Play Forced Game - Test Blocking Failure",
+                async: true,
+                run: async () => {
+                    const agent1 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 1);
+                    const agent2 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 2);
+                    const game = new TicTacToeGame();
+
+                    const games = [
+                        [4, 1, 0, 2, 8],
+                        [3, 0, 4, 2, 5],
+                        [6, 0, 7, 2, 8],
+                        [0, 1, 3, 2, 6],
+                        [1, 0, 4, 2, 7],
+                        [1, 0, 8, 3, 7, 6],
+                        [0, 2, 6, 4, 3, 6],
+                        [1, 8, 4, 7, 0, 6]
+                    ];
+
+                    for (const moves of games) {
+                        game.reset();
+                        for (let i = 0; i < moves.length; i++) {
+                            game.executeAction(moves[i],
+                                            i % 2 === 0 ? agent1 : agent2,
+                                            i % 2 === 0 ? agent2 : agent1);
+                        }
+                    }
+
+                    const states = tf.tidy(() => tf.concat(
+                        agent2.replayBuffer.map(item => encodeState(item.state))
+                    ));
+
+                    for (let i = 1; i < 5; i++){
+                        const targetQs = tf.tidy(() => {
+                            const predictions = agent2.model.predict(states);
+                            const qValues = predictions.arraySync();
+
+                            agent2.replayBuffer.forEach((exp, i) => {
+                                qValues[i][exp.action] = exp.reward;
+                            });
+
+                            return tf.tensor2d(qValues);
+                        });
+
+                        await agent2.model.fit(states, targetQs, {
+                            epochs: 10,
+                            verbose: 1,
+                            batchSize: Math.min(32, agent2.replayBuffer.length)
+                        });
+
+                        agent2.updateTargetModel();
+
+                        targetQs.dispose();
+                    }
+                    states.dispose();
+
+                    // The critical state where Agent2 made the wrong choice
+                    const criticalState = [1, -1, 0,
+                                           0,  1, 0,
+                                           0,  0, 0];
+
+                    // Get Agent2's Q-values for this state after training
+                    const qValues = await agent2.predictQValues(criticalState);
+                    const moveValue = qValues[2]; // Value of the bad move
+
+                    console.log(JSON.stringify(qValues));
+                    console.log(moveValue);
+
+                    return {
+                        input: `Critical state: ${criticalState}, Move chosen: 2, Q-value: ${moveValue}`,
+                        expected: true,
+                        result: moveValue < 0,
+                        debug: { qValues, moveValue }
+                    };
+                }
             }
         ]
     }
 };
 
 // Test Runner
-window.onload = function() {
+window.onload = async function() {
     const summary = document.getElementById('summary');
     const failures = document.getElementById('failures');
     
@@ -141,35 +217,49 @@ window.onload = function() {
     let allFailures = [];
 
     // Run all test suites
-    Object.entries(testSuites).forEach(([suiteName, suite]) => {
-        const suiteResults = suite.tests.map(test => {
-            const { input, expected, result } = test.run();
+    for (const [suiteName, suite] of Object.entries(testSuites)) {
+        for (const test of suite.tests) {
+            totalTests++;
             
-            // Different comparison logic based on type
-            let passed;
-            if (Array.isArray(expected)) {
-                passed = expected.length === result.length && 
-                        expected.every((val, idx) => Math.abs(val - result[idx]) < 0.0001);
-            } else if (typeof expected === 'number') {
-                passed = Math.abs(result - expected) < 0.0001;
-            } else {
-                passed = result === expected;
-            }
-                    
-            return {
-                suiteName: suite.name,
-                ...test,
-                input,
-                expected,
-                result,
-                passed
-            };
-        });
+            try {
+                // Handle both async and sync tests
+                const { input, expected, result, debug } = test.async ?
+                    await test.run() :
+                    test.run();
 
-        totalTests += suiteResults.length;
-        totalPassed += suiteResults.filter(t => t.passed).length;
-        allFailures = allFailures.concat(suiteResults.filter(t => !t.passed));
-    });
+                // Different comparison logic based on type
+                let passed;
+                if (Array.isArray(expected)) {
+                    passed = expected.length === result.length &&
+                            expected.every((val, idx) => Math.abs(val - result[idx]) < 0.0001);
+                } else if (typeof expected === 'number') {
+                    passed = Math.abs(result - expected) < 0.0001;
+                } else {
+                    passed = result === expected;
+                }
+
+                if (passed) {
+                    totalPassed++;
+                } else {
+                    allFailures.push({
+                        suiteName: suite.name,
+                        ...test,
+                        input,
+                        expected,
+                        result,
+                        debug
+                    });
+                }
+            } catch (error) {
+                console.error(`Test failed with error: ${error}`);
+                allFailures.push({
+                    suiteName: suite.name,
+                    ...test,
+                    error: error.message
+                });
+            }
+        }
+    }
 
     // Display summary
     summary.innerHTML = `

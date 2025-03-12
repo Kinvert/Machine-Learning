@@ -117,7 +117,8 @@ class TicTacToeGame {
         }
     }
 
-    executeAction(index, playingAgent, waitingAgent) {
+    executeAction(index, playingAgent, waitingAgent, forcedAction=null) {
+        if (forcedAction) index = forcedAction;
         if (this.board[index] !== 0 || this.gameOver) return REWARDS.MOVE;
 
         playingAgent.moveHistory.push({
