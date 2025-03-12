@@ -146,6 +146,20 @@ const testSuites = {
                         [1, 8, 4, 7, 0, 6]
                     ];
 
+                    const losingStates = [
+                        [1, -1, 0, 0, 1, 0, 0, 0, 0],  // from game: 4 1 0 2 8
+                        [0, -1, 0, 1, 1, 0, 0, 0, 0],  // from game: 3 0 4 2 5
+                        [0, 0, 0, 0, 1, 0, 1, -1, 0],  // from game: 6 0 7 2 8
+                        [1, -1, 0, 1, 0, 0, 0, 0, 0],  // from game: 0 1 3 2 6
+                        [1, 1, 0, 0, 1, 0, 0, -1, 0]   // from game: 1 0 4 2 7
+                    ];
+
+                    const winningStates = [
+                        [1, 1, 0, 0, 1, -1, 0, -1, 1], // from game: 1 0 8 3 7 6
+                        [1, 0, -1, 0, 1, 0, 0, -1, 1], // from game: 0 2 6 4 3 6
+                        [1, -1, 0, 0, 1, 0, 0, -1, 1]  // from game: 1 8 4 7 0 6
+                    ];
+
                     for (const moves of games) {
                         game.reset();
                         for (let i = 0; i < moves.length; i++) {
@@ -183,23 +197,32 @@ const testSuites = {
                     }
                     states.dispose();
 
-                    // The critical state where Agent2 made the wrong choice
-                    const criticalState = [1, -1, 0,
-                                           0,  1, 0,
-                                           0,  0, 0];
+                    // Check losing states
+                    let totalLosingValue = 0;
+                    for (const state of losingStates) {
+                        const qValues = await agent2.predictQValues(state);
+                        console.log(`losing ${qValues[2]}`)
+                        totalLosingValue += qValues[2];
+                    }
+                    const avgLosingValue = totalLosingValue / losingStates.length;
 
-                    // Get Agent2's Q-values for this state after training
-                    const qValues = await agent2.predictQValues(criticalState);
-                    const moveValue = qValues[2]; // Value of the bad move
+                    // Check winning states
+                    let totalWinningValue = 0;
+                    for (const state of winningStates) {
+                        const qValues = await agent2.predictQValues(state);
+                        console.log(`winning ${qValues[6]}`)
+                        totalWinningValue += qValues[6];
+                    }
+                    const avgWinningValue = totalWinningValue / winningStates.length;
 
-                    console.log(JSON.stringify(qValues));
-                    console.log(moveValue);
+                    console.log('Average Q-value for losing moves:', avgLosingValue);
+                    console.log('Average Q-value for winning moves:', avgWinningValue);
 
                     return {
-                        input: `Critical state: ${criticalState}, Move chosen: 2, Q-value: ${moveValue}`,
+                        input: `Losing states: ${losingStates.length}, Winning states: ${winningStates.length}`,
                         expected: true,
-                        result: moveValue < 0,
-                        debug: { qValues, moveValue }
+                        result: avgLosingValue < 0 && avgWinningValue > 0,
+                        debug: { avgLosingValue, avgWinningValue }
                     };
                 }
             }
