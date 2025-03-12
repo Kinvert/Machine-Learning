@@ -134,6 +134,7 @@ const testSuites = {
                     const agent1 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 1);
                     const agent2 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 2);
                     const game = new TicTacToeGame();
+                    const batchSize = 32;
 
                     const games = [
                         [4, 1, 0, 2, 8],
@@ -145,6 +146,61 @@ const testSuites = {
                         [0, 2, 6, 4, 3, 6],
                         [1, 8, 4, 7, 0, 6]
                     ];
+
+                    // Play Forced Games
+                    for (const moves of games) {
+                        game.reset();
+                        for (let i = 0; i < moves.length; i++) {
+                            game.executeAction(moves[i],
+                                            i % 2 === 0 ? agent1 : agent2,
+                                            i % 2 === 0 ? agent2 : agent1);
+                        }
+                    }
+
+                    // Create States
+                    const states = tf.tidy(() => tf.concat(
+                        agent2.replayBuffer.map(item => encodeState(item.state))
+                    ));
+
+                    // Train
+                    for (let i = 1; i < 5; i++){
+
+                        const chosenExps = [];
+                        for (let i = 0; i < batchSize; i++) {
+                            const randomIndex = Math.floor(Math.random() * agent2.replayBuffer.length);
+                            chosenExps.push(agent2.replayBuffer[randomIndex]);
+                        }
+                        const states = tf.tidy(() => tf.concat(
+                            chosenExps.map(item => encodeState(item.state))
+                        ));
+
+                        const targetQs = tf.tidy(() => {
+                            const predictions = agent2.model.predict(states);
+                            const qValues = predictions.arraySync();
+
+                            agent2.replayBuffer.forEach((exp, i) => {
+                                qValues[i][exp.action] = exp.reward;
+                            });
+
+                            return tf.tensor2d(qValues);
+                        });
+
+                        await agent2.model.fit(states, targetQs, {
+                            epochs: 10,
+                            verbose: 0,
+                            batchSize: Math.min(batchSize, agent2.replayBuffer.length),
+                            callbacks: {
+                                onEpochEnd: (epoch, logs) => {
+                                    console.log(`Epoch ${epoch + 1}, Loss = ${logs.loss}`);
+                                }
+                            }
+                        });
+
+                        agent2.updateTargetModel();
+
+                        targetQs.dispose();
+                        states.dispose();
+                    }
 
                     const losingStates = [
                         [1, -1, 0, 0, 1, 0, 0, 0, 0],  // from game: 4 1 0 2 8
@@ -159,43 +215,6 @@ const testSuites = {
                         [1, 0, -1, 0, 1, 0, 0, -1, 1], // from game: 0 2 6 4 3 6
                         [1, -1, 0, 0, 1, 0, 0, -1, 1]  // from game: 1 8 4 7 0 6
                     ];
-
-                    for (const moves of games) {
-                        game.reset();
-                        for (let i = 0; i < moves.length; i++) {
-                            game.executeAction(moves[i],
-                                            i % 2 === 0 ? agent1 : agent2,
-                                            i % 2 === 0 ? agent2 : agent1);
-                        }
-                    }
-
-                    const states = tf.tidy(() => tf.concat(
-                        agent2.replayBuffer.map(item => encodeState(item.state))
-                    ));
-
-                    for (let i = 1; i < 5; i++){
-                        const targetQs = tf.tidy(() => {
-                            const predictions = agent2.model.predict(states);
-                            const qValues = predictions.arraySync();
-
-                            agent2.replayBuffer.forEach((exp, i) => {
-                                qValues[i][exp.action] = exp.reward;
-                            });
-
-                            return tf.tensor2d(qValues);
-                        });
-
-                        await agent2.model.fit(states, targetQs, {
-                            epochs: 10,
-                            verbose: 1,
-                            batchSize: Math.min(32, agent2.replayBuffer.length)
-                        });
-
-                        agent2.updateTargetModel();
-
-                        targetQs.dispose();
-                    }
-                    states.dispose();
 
                     // Check losing states
                     let totalLosingValue = 0;
