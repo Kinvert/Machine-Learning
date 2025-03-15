@@ -131,8 +131,8 @@ const testSuites = {
                 name: "Play Forced Game - Test Blocking Failure",
                 async: true,
                 run: async () => {
-                    const agent1 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 1);
-                    const agent2 = new DQNAgent(0.025, 0.95, 0.0, -0.5, 2);
+                    const agent1 = new DQNAgent(0.005, 0.95, 0.0, -0.5, 1);
+                    const agent2 = new DQNAgent(0.005, 0.95, 0.0, -0.5, 2);
                     const game = new TicTacToeGame();
                     const batchSize = 32;
 
@@ -143,7 +143,9 @@ const testSuites = {
                         [0, 1, 3, 2, 6],
                         [1, 0, 4, 2, 7],
                         [1, 0, 8, 3, 7, 6],
-                        [0, 2, 6, 4, 3, 6],
+                        [1, 3, 8, 0, 2, 6],
+                        [0, 2, 1, 4, 3, 6],
+                        [0, 4, 1, 2, 7, 6],
                         [1, 8, 4, 7, 0, 6]
                     ];
 
@@ -157,28 +159,23 @@ const testSuites = {
                         }
                     }
 
-                    // Create States
-                    const states = tf.tidy(() => tf.concat(
-                        agent2.replayBuffer.map(item => encodeState(item.state))
-                    ));
+                    for (let i = 1; i < 15; i++) {
 
-                    // Train
-                    for (let i = 1; i < 5; i++){
+                        const indices = Array.from({ length: batchSize }, () =>
+                            Math.floor(Math.random() * agent2.replayBuffer.length));
 
-                        const chosenExps = [];
-                        for (let i = 0; i < batchSize; i++) {
-                            const randomIndex = Math.floor(Math.random() * agent2.replayBuffer.length);
-                            chosenExps.push(agent2.replayBuffer[randomIndex]);
-                        }
-                        const states = tf.tidy(() => tf.concat(
-                            chosenExps.map(item => encodeState(item.state))
-                        ));
+                        const chosenExps = indices.map(idx => agent2.replayBuffer[idx]);
+
+                        const states = tf.tidy(() => {
+                            const encodedStates = chosenExps.map(item => encodeState(item.state));
+                            return tf.concat(encodedStates);
+                        });
 
                         const targetQs = tf.tidy(() => {
                             const predictions = agent2.model.predict(states);
                             const qValues = predictions.arraySync();
 
-                            agent2.replayBuffer.forEach((exp, i) => {
+                            chosenExps.forEach((exp, i) => {
                                 qValues[i][exp.action] = exp.reward;
                             });
 
@@ -188,12 +185,7 @@ const testSuites = {
                         await agent2.model.fit(states, targetQs, {
                             epochs: 10,
                             verbose: 0,
-                            batchSize: Math.min(batchSize, agent2.replayBuffer.length),
-                            callbacks: {
-                                onEpochEnd: (epoch, logs) => {
-                                    console.log(`Epoch ${epoch + 1}, Loss = ${logs.loss}`);
-                                }
-                            }
+                            batchSize: Math.min(batchSize, agent2.replayBuffer.length)
                         });
 
                         agent2.updateTargetModel();
@@ -202,21 +194,22 @@ const testSuites = {
                         states.dispose();
                     }
 
-                    const losingStates = [
+                    const losingStates = [ //                              !
                         [1, -1, 0, 0, 1, 0, 0, 0, 0],  // from game: 4 1 0 2 8
                         [0, -1, 0, 1, 1, 0, 0, 0, 0],  // from game: 3 0 4 2 5
-                        [0, 0, 0, 0, 1, 0, 1, -1, 0],  // from game: 6 0 7 2 8
+                        [-1, 0, 0, 0, 0, 0, 1, 1, 0],  // from game: 6 0 7 2 8
                         [1, -1, 0, 1, 0, 0, 0, 0, 0],  // from game: 0 1 3 2 6
-                        [1, 1, 0, 0, 1, 0, 0, -1, 0]   // from game: 1 0 4 2 7
+                        [-1, 1, 0, 0, 1, 0, 0, 0, 0]   // from game: 1 0 4 2 7
                     ];
 
-                    const winningStates = [
-                        [1, 1, 0, 0, 1, -1, 0, -1, 1], // from game: 1 0 8 3 7 6
-                        [1, 0, -1, 0, 1, 0, 0, -1, 1], // from game: 0 2 6 4 3 6
-                        [1, -1, 0, 0, 1, 0, 0, -1, 1]  // from game: 1 8 4 7 0 6
+                    const winningStates = [ //                                 !
+                        [-1, 1, 0, -1, 0, 0, 0, 1, 1], // from game: 1 0 8 3 7 6
+                        [-1, 1, 1, -1, 0, 0, 0, 0, 1], // from game: 1 3 8 0 2 6
+                        [1, 1, -1, 1, -1, 0, 0, 0, 0], // from game: 0 2 1 4 3 6
+                        [1, 1, -1, 0, -1, 0, 0, 1, 0], // from game: 0 4 1 2 7 6
+                        [1, 1, 0, 0, 1, 0, 0, -1, -1]  // from game: 1 8 4 7 0 6
                     ];
 
-                    // Check losing states
                     let totalLosingValue = 0;
                     for (const state of losingStates) {
                         const qValues = await agent2.predictQValues(state);
@@ -225,7 +218,6 @@ const testSuites = {
                     }
                     const avgLosingValue = totalLosingValue / losingStates.length;
 
-                    // Check winning states
                     let totalWinningValue = 0;
                     for (const state of winningStates) {
                         const qValues = await agent2.predictQValues(state);
@@ -251,6 +243,7 @@ const testSuites = {
 
 // Test Runner
 window.onload = async function() {
+    const startTime = performance.now();
     const summary = document.getElementById('summary');
     const failures = document.getElementById('failures');
     
@@ -324,4 +317,7 @@ window.onload = async function() {
             `;
         });
     }
+    const endTime = performance.now();
+    const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(3);
+    console.log(`Total testing time: ${totalTimeSeconds} seconds`);
 };
