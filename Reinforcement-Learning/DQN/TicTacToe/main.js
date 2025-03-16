@@ -10,10 +10,10 @@ let DISCOUNT_FACTOR1 = 0.95;
 let EXPLORATION_RATE1 = 0.995;
 let DRAW_REWARD1 = 0.1;
 
-let LEARNING_RATE2 = 0.025;
+let LEARNING_RATE2 = 0.005 //0.025;
 let DISCOUNT_FACTOR2 = 0.95;
 let EXPLORATION_RATE2 = 0.995;
-let DRAW_REWARD2 = 0.1;
+let DRAW_REWARD2 = 0.5;
 
 const TRAIN_ITERATIONS = 10;
 
@@ -349,8 +349,8 @@ class DQNAgent {
             loss: 'meanSquaredError'
         });
 
-        this.maxBufferSize = 10000;
-        this.batchSize = 2048;
+        this.maxBufferSize = 2000;
+        this.batchSize = 32; //2048;
         
         this.learningRate = learningRate;
         this.discountFactor = discountFactor;
@@ -452,9 +452,9 @@ class DQNAgent {
         
         const trainIterations = Math.min(TRAIN_ITERATIONS, Math.floor(this.replayBuffer.length / this.batchSize));
         if (DEBUG) console.log(`Agent${this.num} trainIterations = ${trainIterations}`);
-        for (let i = 0; i < trainIterations; i++) {
-            await this.trainOnBatch();
-        }
+        //for (let i = 0; i < trainIterations; i++) {
+        //    await this.trainOnBatch();
+        //}
     }
 
     // Store experience prioritization
@@ -471,6 +471,52 @@ class DQNAgent {
         this.replayBuffer.push(experience);
         if (this.replayBuffer.length > this.maxBufferSize) {
             this.replayBuffer.shift();
+        }
+    }
+
+    async trainOnBatch2(runs=15, epochs=10) {
+        if (this._fitInProgress) {
+            if (DEBUG) console.log(`Agent${this.num} _fitInProgress`);
+            return;
+        } else {
+            if (DEBUG) console.log(`Agent${this.num} fitting`);
+        }
+
+        this._fitInProgress = true;
+        for (let i = 1; i < runs; i++) {
+
+            const indices = Array.from({ length: this.batchSize }, () =>
+                Math.floor(Math.random() * this.replayBuffer.length));
+
+            const chosenExps = indices.map(idx => this.replayBuffer[idx]);
+
+            const states = tf.tidy(() => {
+                const encodedStates = chosenExps.map(item => encodeState(item.state));
+                return tf.concat(encodedStates);
+            });
+
+            const targetQs = tf.tidy(() => {
+                //const predictions = this.model.predict(states);
+                const predictions = this.targetModel.predict(states);
+                const qValues = predictions.arraySync();
+
+                chosenExps.forEach((exp, i) => {
+                    qValues[i][exp.action] = exp.reward;
+                });
+
+                return tf.tensor2d(qValues);
+            });
+
+            await this.model.fit(states, targetQs, {
+                epochs: epochs,
+                verbose: 0,
+                batchSize: Math.min(this.batchSize, this.replayBuffer.length)
+            });
+
+            this.updateTargetModel();
+
+            targetQs.dispose();
+            states.dispose();
         }
     }
 
@@ -814,16 +860,48 @@ async function trainAgent(numGames) {
 
     let updatesEvery = 1000;
     let numLoops = numGames / updatesEvery;
+    let trainEvery = 100
     if (numGames <= 100) {
         updatesEvery = numGames;
         numLoops = 1;
     }
+
+
+    const games = [
+        [4, 1, 0, 2, 8],
+        [3, 0, 4, 2, 5],
+        [6, 0, 7, 2, 8],
+        [0, 1, 3, 2, 6],
+        [1, 0, 4, 2, 7],
+        [1, 0, 8, 3, 7, 6],
+        [1, 3, 8, 0, 2, 6],
+        [0, 2, 1, 4, 3, 6],
+        [0, 4, 1, 2, 7, 6],
+        [1, 8, 4, 7, 0, 6]
+    ];
+
+    // Play Forced Games
+    for (const moves of games) {
+        game.reset();
+        for (let i = 0; i < moves.length; i++) {
+            game.executeAction(moves[i],
+                            i % 2 === 0 ? agent1 : agent2,
+                            i % 2 === 0 ? agent2 : agent1);
+        }
+    }
+
+
+
     for (let j = 0; j < numLoops; j++) {
-        for (let i = 0; i < updatesEvery; i++) {
-            agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
-            agent1.explorationRate = 1.0;
-            agent2.explorationRate = calculateEpsilonDecay(episodes, numGames);
-            await selfPlay();
+        for (let i = 0; i < updatesEvery / trainEvery; i++) {
+            for (let k = 0; k < trainEvery; k++) {
+                agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
+                agent1.explorationRate = 1.0;
+                agent2.explorationRate = calculateEpsilonDecay(episodes, numGames);
+                //await selfPlay();
+            }
+            //agent1.trainOnBatch2();
+            agent2.trainOnBatch2();
         }
         game.reset();
         renderer.updateStats(episodes, wins2, draws2, losses2);
