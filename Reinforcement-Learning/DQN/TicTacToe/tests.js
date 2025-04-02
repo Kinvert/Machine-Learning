@@ -160,38 +160,50 @@ const testSuites = {
                     }
 
                     for (let i = 1; i < 15; i++) {
-
-                        const indices = Array.from({ length: batchSize }, () =>
-                            Math.floor(Math.random() * agent2.replayBuffer.length));
-
-                        const chosenExps = indices.map(idx => agent2.replayBuffer[idx]);
-
-                        const states = tf.tidy(() => {
-                            const encodedStates = chosenExps.map(item => encodeState(item.state));
-                            return tf.concat(encodedStates);
-                        });
-
-                        const targetQs = tf.tidy(() => {
-                            const predictions = agent2.model.predict(states);
-                            const qValues = predictions.arraySync();
-
-                            chosenExps.forEach((exp, i) => {
-                                qValues[i][exp.action] = exp.reward;
+                        // Calculate how many batches we need to cover the entire replay buffer
+                        const totalBatches = Math.ceil(agent2.replayBuffer.length / batchSize);
+                        
+                        // Create array of all indices and shuffle it
+                        const allIndices = Array.from({ length: agent2.replayBuffer.length }, (_, idx) => idx);
+                        for (let j = allIndices.length - 1; j > 0; j--) {
+                            const randIdx = Math.floor(Math.random() * (j + 1));
+                            [allIndices[j], allIndices[randIdx]] = [allIndices[randIdx], allIndices[j]];
+                        }
+                        
+                        // Train on batches that cover the entire replay buffer
+                        for (let batchNum = 0; batchNum < totalBatches; batchNum++) {
+                            const startIdx = batchNum * batchSize;
+                            const batchIndices = allIndices.slice(startIdx, startIdx + batchSize);
+                            
+                            const chosenExps = batchIndices.map(idx => agent2.replayBuffer[idx]);
+                            
+                            const states = tf.tidy(() => {
+                                const encodedStates = chosenExps.map(item => encodeState(item.state));
+                                return tf.concat(encodedStates);
                             });
-
-                            return tf.tensor2d(qValues);
-                        });
-
-                        await agent2.model.fit(states, targetQs, {
-                            epochs: 10,
-                            verbose: 0,
-                            batchSize: Math.min(batchSize, agent2.replayBuffer.length)
-                        });
-
+                            
+                            const targetQs = tf.tidy(() => {
+                                const predictions = agent2.model.predict(states);
+                                const qValues = predictions.arraySync();
+                                
+                                chosenExps.forEach((exp, i) => {
+                                    qValues[i][exp.action] = exp.reward;
+                                });
+                                
+                                return tf.tensor2d(qValues);
+                            });
+                            
+                            await agent2.model.fit(states, targetQs, {
+                                epochs: 10,
+                                verbose: 0,
+                                batchSize: Math.min(batchSize, chosenExps.length)
+                            });
+                            
+                            targetQs.dispose();
+                            states.dispose();
+                        }
+                        
                         agent2.updateTargetModel();
-
-                        targetQs.dispose();
-                        states.dispose();
                     }
 
                     const losingStates = [ //                              !

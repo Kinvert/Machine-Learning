@@ -80,3 +80,63 @@ const targetQs = tf.tidy(() => {
     }
     return tf.tensor2d(currentQs, [rotatedBatch.length, 9]);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+// =======================================================================
+// SLIDERS
+// =======================================================================
+
+document.getElementById('epsilon-slider1').addEventListener('input', (e) => {
+    EXPLORATION_RATE1 = parseFloat(e.target.value);
+    agent1.explorationRate = EXPLORATION_RATE1;
+    document.getElementById('epsilon-value1').textContent = EXPLORATION_RATE1.toFixed(2);
+});
+document.getElementById('gamma-slider1').addEventListener('input', (e) => {
+    DISCOUNT_FACTOR1 = parseFloat(e.target.value);
+    agent1.discountFactor = DISCOUNT_FACTOR1;
+    document.getElementById('gamma-value1').textContent = DISCOUNT_FACTOR1.toFixed(2);
+});
+document.getElementById('alpha-slider1').addEventListener('input', (e) => {
+    LEARNING_RATE1 = parseFloat(e.target.value);
+    agent1.model.compile({ optimizer: tf.train.adam(LEARNING_RATE1), loss: 'meanSquaredError' });
+    document.getElementById('alpha-value1').textContent = LEARNING_RATE1.toFixed(2);
+});
+document.getElementById('draw-slider1').addEventListener('input', (e) => {
+    DRAW_REWARD1 = parseFloat(e.target.value);
+    agent1.drawReward = DRAW_REWARD1;
+    document.getElementById('draw-value1').textContent = DRAW_REWARD1.toFixed(2);
+});
+
+document.getElementById('epsilon-slider2').addEventListener('input', (e) => {
+    EXPLORATION_RATE2 = parseFloat(e.target.value);
+    agent2.explorationRate = EXPLORATION_RATE2;
+    document.getElementById('epsilon-value2').textContent = EXPLORATION_RATE2.toFixed(2);
+});
+document.getElementById('gamma-slider2').addEventListener('input', (e) => {
+    DISCOUNT_FACTOR2 = parseFloat(e.target.value);
+    agent2.discountFactor = DISCOUNT_FACTOR2;
+    document.getElementById('gamma-value2').textContent = DISCOUNT_FACTOR2.toFixed(2);
+});
+document.getElementById('alpha-slider2').addEventListener('input', (e) => {
+    LEARNING_RATE2 = parseFloat(e.target.value);
+    agent2.model.compile({ optimizer: tf.train.adam(LEARNING_RATE2), loss: 'meanSquaredError' });
+    document.getElementById('alpha-value2').textContent = LEARNING_RATE2.toFixed(2);
+});
+document.getElementById('draw-slider2').addEventListener('input', (e) => {
+    DRAW_REWARD2 = parseFloat(e.target.value);
+    agent2.drawReward = DRAW_REWARD2;
+    document.getElementById('draw-value2').textContent = DRAW_REWARD2.toFixed(2);
+});
+
+
+
