@@ -2,7 +2,7 @@
 
 [:video_game: Live Game](https://kinvert.github.io/Machine-Learning/Reinforcement-Learning/Q-Learning/TicTacToe/index.html)
 
-This is an interactive game of Tic Tac Toe.
+This is an INCOMPLETE interactive game of Tic Tac Toe.
 
 Agent1 - Your teammate to give you suggestions, and opponent of Agent2. Takes first turn, is X.
 
@@ -21,3 +21,5 @@ You can choose whether or not to train the Agents on board rotations. Basically 
 When training and watching the colors of the board change, what you are seeing is the Q Values for an empty board from the perspective of Agent2, and the brighter green the more that move is suggested. That said, if you train enough everything will likely become green since both Agents are smart enough to draw every game eventually.
 
 <img alt="Q-Space" width="280px" src="https://github.com/Kinvert/Machine-Learning/blob/master/Reinforcement-Learning/Q-Learning/TicTacToe/tic-tac-toe-q-learning.png" />
+
+I haven't been able to get this to train for some reason, and there are other things I want to move on to. In the unit test I can get specific games to train well, and 9/10 times it properly trains on the curated games. You'll see that in the bottom 9 of 9 tests passed. Hopefully I get time to come back to this one.
