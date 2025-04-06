@@ -530,7 +530,7 @@ function makeMove(index) {
 }
 
 // Sliders go here, currently in old.js
-
+/*
 document.getElementById('train-100').addEventListener('click', () => {
     trainAgent(100);
 });
@@ -540,6 +540,7 @@ document.getElementById('train-10k').addEventListener('click', () => {
 document.getElementById('train-1m').addEventListener('click', () => {
     trainAgent(1000000);
 });
+*/
 
 document.getElementsByName('colorMode').forEach(radio => {
     radio.addEventListener('change', (e) => {
