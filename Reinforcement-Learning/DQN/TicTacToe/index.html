@@ -12,14 +12,14 @@
         .board {
             position: relative;
             display: grid;
-            grid-template-columns: repeat(3, 50px);
+            grid-template-columns: repeat(3, 100px);
             grid-gap: 5px;
             justify-content: center;
             margin: 20px;
         }
         .cell {
-            width: 50px;
-            height: 50px;
+            width: 100px;
+            height: 100px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -89,7 +89,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
 </head>
 <body>
+    <h1>Incomplete - I Might Get Back to This Later</h1>
     <div id="controls">
+        <!--
         <div>Turn 1 Agent</div>
         <div class="slider-container">
             <label for="epsilon">Epsilon:</label>
@@ -140,6 +142,7 @@
             <span id="draw-value2">5.0</span>
         </div>
         <hr>
+        -->
         <div style="margin: 0 auto; width: 220px; text-align: left;">
             <label>Color Display Mode:</label><br/>
             <label>
@@ -168,6 +171,9 @@
     <h2>DecodeState Function Tests</h2>
     <div id="summary" class="summary"></div>
     <div id="failures" class="failures"></div>
+    <script src="constants.js"></script>
+    <script src="utils.js"></script>
+    <script src="game_renderer.js"></script>
     <script src="main.js"></script>
     <script src="tests.js"></script>
     
