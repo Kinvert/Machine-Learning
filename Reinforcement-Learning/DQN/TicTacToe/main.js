@@ -104,7 +104,7 @@ class TicTacToeGame {
 
 function buildLayers(model) {
     model.add(tf.layers.dense({
-        units: 32,
+        units: 128,
         activation: 'tanh',
         inputShape: [9],
         kernelInitializer: 'glorotNormal',
@@ -113,7 +113,7 @@ function buildLayers(model) {
     for (let i = 0; i < 2; i++) {
         model.add(tf.layers.batchNormalization());
         model.add(tf.layers.dense({
-            units: 32,
+            units: 128,
             activation: 'tanh',
             kernelInitializer: 'glorotNormal',
             dtype: FLOATTYPE
@@ -554,6 +554,7 @@ document.getElementById('rotationToggle').addEventListener('change', (e) => {
 });
 
 async function trainAgent(numGames) {
+    console.time('train');
     console.log('Training');
     const trainButton1 = document.getElementById('train-100');
     const trainButton2 = document.getElementById('train-10k');
@@ -613,8 +614,8 @@ async function trainAgent(numGames) {
     for (let j = 0; j < numLoops; j++) {
         for (let i = 0; i < updatesEvery / trainEvery; i++) {
             for (let k = 0; k < trainEvery; k++) {
-                //agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
-                agent1.explorationRate = 1.0;
+                agent1.explorationRate = calculateEpsilonDecay(episodes, numGames);
+                //agent1.explorationRate = 1.0;
                 agent2.explorationRate = calculateEpsilonDecay(episodes, numGames);
                 await selfPlay();
             }
@@ -632,6 +633,7 @@ async function trainAgent(numGames) {
     trainButton2.disabled = false;
     trainButton3.disabled = false;
     statusEl.textContent = 'Training Complete';
+    console.timeEnd('train');
 }
 
 async function selfPlay() {
