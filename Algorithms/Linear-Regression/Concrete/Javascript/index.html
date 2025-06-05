@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vanilla Least Squares Regression Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2em;
+      background: #181a1b;
+      color: #e0e0e0;
+    }
+    #output {
+      margin-top: 2em;
+      white-space: pre;
+      background: #23272b;
+      color: #e0e0e0;
+      padding: 1em;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    input[type="file"] {
+      background: #23272b;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      padding: 0.3em;
+      border-radius: 4px;
+    }
+    label, code {
+      color: #b8d7ff;
+    }
+    h1 {
+      color: #7ecfff;
+    }
+    ::selection {
+      background: #3a506b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Least Squares Regression (Vanilla JS)</h1>
+  <p>
+    <label>Load <code>concrete.csv</code>:
+      <input type="file" id="csvFile" accept=".csv,text/csv">
+    </label>
+  </p>
+  <div id="output"></div>
+  <script src="main.js"></script>
+</body>
+</html>
