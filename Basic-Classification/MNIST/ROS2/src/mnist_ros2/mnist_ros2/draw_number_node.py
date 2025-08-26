@@ -27,8 +27,6 @@ class DrawNumberNode(Node):
         cv2.namedWindow('Draw Digit Here')
         cv2.setMouseCallback('Draw Digit Here', self.mouse_callback)
 
-        self.timer = self.create_timer(0.1, self.publish_image)  # 10 Hz
-
         self.get_logger().info('Draw Number Node started')
         self.get_logger().info('Draw digits in the window, press "c" to clear, "q" to quit')
         self.current_prediction = "No prediction yet"
@@ -44,14 +42,13 @@ class DrawNumberNode(Node):
     def prediction_callback(self, msg):
         self.current_prediction = msg.data
 
-    def publish_image(self):
+    def display_canvas(self):
         display_canvas = self.canvas.copy()
 
         cv2.putText(display_canvas, self.current_prediction, 
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
+                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         cv2.putText(display_canvas, "Press 'c' to clear, 'q' to quit", 
-                   (10, self.canvas_size[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                (10, self.canvas_size[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         cv2.imshow('Draw Digit Here', display_canvas)
 
@@ -60,9 +57,7 @@ class DrawNumberNode(Node):
             self.canvas = np.zeros((*self.canvas_size, 3), dtype=np.uint8)
             self.get_logger().info('Canvas cleared')
         elif key == ord('q'):
-            self.get_logger().info('Quitting...')
-            rclpy.shutdown()
-            return
+            return False
 
         try:
             ros_image = self.bridge.cv2_to_imgmsg(self.canvas, "bgr8")
@@ -71,20 +66,25 @@ class DrawNumberNode(Node):
         except Exception as e:
             self.get_logger().error(f'Error publishing image: {str(e)}')
 
+        return True
+
     def destroy_node(self):
         cv2.destroyAllWindows()
         super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
-
     draw_node = DrawNumberNode()
 
     try:
-        rclpy.spin(draw_node)
+        while rclpy.ok():
+            rclpy.spin_once(draw_node, timeout_sec=0.1)
+            if not draw_node.display_canvas():
+                break
     except KeyboardInterrupt:
         pass
     finally:
+        cv2.destroyAllWindows()
         draw_node.destroy_node()
         rclpy.shutdown()
 

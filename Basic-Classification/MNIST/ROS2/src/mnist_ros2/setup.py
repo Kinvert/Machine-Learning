@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'mnist_classifier = mnist_ros2.mnist_classifier_node:main',
             'draw_number = mnist_ros2.draw_number_node:main',
+            'webcam_capture = mnist_ros2.webcam_capture_node:main',
         ],
     },
 )

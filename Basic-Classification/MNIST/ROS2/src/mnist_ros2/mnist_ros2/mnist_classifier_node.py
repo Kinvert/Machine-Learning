@@ -95,6 +95,8 @@ class MNISTClassifierNode(Node):
         self.get_logger().info('Subscribing to: /camera/image_raw')
         self.get_logger().info('Publishing to: /mnist_prediction, /mnist_confidence')
 
+        self.latest_frame = None
+
     def find_model_from_package_root(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         search_dir = current_dir
@@ -113,35 +115,16 @@ class MNISTClassifierNode(Node):
             gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         else:
             gray = cv_image
-
-        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largest_contour)
-
-            padding = 10
-            x = max(0, x - padding)
-            y = max(0, y - padding)
-            w = min(gray.shape[1] - x, w + 2*padding)
-            h = min(gray.shape[0] - y, h + 2*padding)
-
-            digit_region = gray[y:y+h, x:x+w]
-        else:
-            h, w = gray.shape
-            center_size = min(h, w) // 2
-            start_y = (h - center_size) // 2
-            start_x = (w - center_size) // 2
-            digit_region = gray[start_y:start_y+center_size, start_x:start_x+center_size]
-
-        return digit_region
+        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+        gray = cv2.convertScaleAbs(gray, alpha=2.0, beta=-50)
+        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+        return gray
     
     def image_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-
             processed = self.preprocess_image(cv_image)
+            self.latest_frame = processed
 
             tensor_image = self.transform(processed).unsqueeze(0).to(self.device)
 
@@ -172,14 +155,20 @@ class MNISTClassifierNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-
     mnist_classifier = MNISTClassifierNode()
 
     try:
-        rclpy.spin(mnist_classifier)
+        while rclpy.ok():
+            rclpy.spin_once(mnist_classifier, timeout_sec=0.1)
+            if mnist_classifier.latest_frame is not None:
+                cv2.imshow("Result", mnist_classifier.latest_frame)
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    break
     except KeyboardInterrupt:
         pass
     finally:
+        cv2.destroyAllWindows()
         mnist_classifier.destroy_node()
         rclpy.shutdown()
 
