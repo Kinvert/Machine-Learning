@@ -2,6 +2,10 @@
 
 Basically the plan is to train it on MNIST and then use ROS2 to communicate with a webcam, I can draw numbers and it should run inference.
 
+![1](<Screenshot from 2025-08-26 01-32-38.png>)
+
+![2](<Screenshot from 2025-08-26 01-35-57.png>)
+
 TODO:
 - double check image output matches model input
 - better image processing
