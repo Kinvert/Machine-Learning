@@ -4,7 +4,7 @@
   <name>mnist_ros2</name>
   <version>0.0.0</version>
   <description>Simple MNIST classification with ROS2 and webcam inference</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <maintainer email="claude@apparently.com">Your Name</maintainer>
   <license>MIT</license>
 
   <depend>rclpy</depend>
